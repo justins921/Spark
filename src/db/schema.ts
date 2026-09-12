@@ -12,6 +12,16 @@ import {
 export const KINDS = ["trip", "tip", "incentive"] as const;
 export type Kind = (typeof KINDS)[number];
 
+/**
+ * Two sides of the wife ledger:
+ *   "owed" — her share of work that isn't captured by an entry's split
+ *            (trips from before you started logging, orders you didn't record)
+ *   "paid" — cash you actually handed her
+ * What's still outstanding is everything owed minus everything paid.
+ */
+export const LEDGER_KINDS = ["owed", "paid"] as const;
+export type LedgerKind = (typeof LEDGER_KINDS)[number];
+
 export const entries = pgTable("entries", {
   id: serial("id").primaryKey(),
   date: date("date").notNull(),
@@ -46,9 +56,10 @@ export const entries = pgTable("entries", {
   seedKey: text("seed_key").unique(),
 });
 
-export const wifePayments = pgTable("wife_payments", {
+export const wifeLedger = pgTable("wife_ledger", {
   id: serial("id").primaryKey(),
   date: date("date").notNull(),
+  kind: text("kind").notNull().$type<LedgerKind>().default("paid"),
   amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
   notes: text("notes").notNull().default(""),
   seedKey: text("seed_key").unique(),
@@ -64,5 +75,5 @@ export const settings = pgTable("settings", {
 
 export type Entry = typeof entries.$inferSelect;
 export type NewEntry = typeof entries.$inferInsert;
-export type WifePayment = typeof wifePayments.$inferSelect;
-export type NewWifePayment = typeof wifePayments.$inferInsert;
+export type WifeLedgerRow = typeof wifeLedger.$inferSelect;
+export type NewWifeLedgerRow = typeof wifeLedger.$inferInsert;

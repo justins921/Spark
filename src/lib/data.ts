@@ -1,9 +1,15 @@
 import "server-only";
 import { asc, desc, eq, gte, lte, and } from "drizzle-orm";
 import { db } from "@/db";
-import { entries, settings, wifePayments } from "@/db/schema";
+import { entries, settings, wifeLedger } from "@/db/schema";
 import { num } from "./money";
-import { toEntryView, toPaymentView, type EntryView, type PaymentView } from "./calc";
+import {
+  sumKind,
+  toEntryView,
+  toLedgerView,
+  type EntryView,
+  type LedgerView,
+} from "./calc";
 import { weekEnd, weekOf } from "./week";
 
 export const DEFAULT_WEEKLY_GOAL = 500;
@@ -32,18 +38,15 @@ export async function getEntriesInWeek(monday: string): Promise<EntryView[]> {
   return rows.map(toEntryView);
 }
 
-export async function getPaymentsInWeek(monday: string): Promise<PaymentView[]> {
+export async function getLedgerInWeek(monday: string): Promise<LedgerView[]> {
   const rows = await db
     .select()
-    .from(wifePayments)
+    .from(wifeLedger)
     .where(
-      and(
-        gte(wifePayments.date, monday),
-        lte(wifePayments.date, weekEnd(monday)),
-      ),
+      and(gte(wifeLedger.date, monday), lte(wifeLedger.date, weekEnd(monday))),
     )
-    .orderBy(desc(wifePayments.date), desc(wifePayments.id));
-  return rows.map(toPaymentView);
+    .orderBy(desc(wifeLedger.date), desc(wifeLedger.id));
+  return rows.map(toLedgerView);
 }
 
 export async function getAllEntries(): Promise<EntryView[]> {
@@ -54,12 +57,12 @@ export async function getAllEntries(): Promise<EntryView[]> {
   return rows.map(toEntryView);
 }
 
-export async function getAllPayments(): Promise<PaymentView[]> {
+export async function getAllLedger(): Promise<LedgerView[]> {
   const rows = await db
     .select()
-    .from(wifePayments)
-    .orderBy(desc(wifePayments.date), desc(wifePayments.id));
-  return rows.map(toPaymentView);
+    .from(wifeLedger)
+    .orderBy(desc(wifeLedger.date), desc(wifeLedger.id));
+  return rows.map(toLedgerView);
 }
 
 export async function getEntry(id: number): Promise<EntryView | null> {
@@ -71,10 +74,21 @@ export async function getEntry(id: number): Promise<EntryView | null> {
 export async function getWeeks(): Promise<string[]> {
   const [allEntries, allPayments] = await Promise.all([
     db.select({ date: entries.date }).from(entries).orderBy(asc(entries.date)),
-    db.select({ date: wifePayments.date }).from(wifePayments),
+    db.select({ date: wifeLedger.date }).from(wifeLedger),
   ]);
   const weeks = new Set<string>();
   for (const r of allEntries) weeks.add(weekOf(r.date));
   for (const r of allPayments) weeks.add(weekOf(r.date));
   return [...weeks].sort((a, b) => (a < b ? 1 : -1));
+}
+
+/** Everything she has earned to date, minus everything actually handed over. */
+export async function getOutstanding(): Promise<number> {
+  const [allEntries, ledger] = await Promise.all([
+    getAllEntries(),
+    getAllLedger(),
+  ]);
+  const owed =
+    allEntries.reduce((s, e) => s + e.wifePaid, 0) + sumKind(ledger, "owed");
+  return owed - sumKind(ledger, "paid");
 }

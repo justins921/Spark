@@ -1,29 +1,31 @@
 import { EntryRow } from "./entry-row";
-import type { DayGroup, PaymentView } from "@/lib/calc";
+import type { DayGroup, LedgerView } from "@/lib/calc";
 import { money } from "@/lib/money";
 import { formatDay } from "@/lib/week";
 
 /**
- * Entries grouped by day, newest first. Lump payments made that day are shown
- * in the day's subtotal so the header matches the running-net line.
+ * Entries grouped by day, newest first. Hand-logged "she earned this" rows
+ * count toward the day's subtotal so the header matches the running-net line.
+ * Payments don't — they settle a debt already taken out of net.
  */
 export function DayList({
   days,
-  payments,
+  ledger,
 }: {
   days: DayGroup[];
-  payments: PaymentView[];
+  ledger: LedgerView[];
 }) {
-  const paidByDate = new Map<string, number>();
-  for (const p of payments) {
-    paidByDate.set(p.date, (paidByDate.get(p.date) ?? 0) + p.amount);
+  const owedByDate = new Map<string, number>();
+  for (const row of ledger) {
+    if (row.kind !== "owed") continue;
+    owedByDate.set(row.date, (owedByDate.get(row.date) ?? 0) + row.amount);
   }
 
   return (
     <div className="space-y-3">
       {days.map((day) => {
-        const lump = paidByDate.get(day.date) ?? 0;
-        const net = day.net - lump;
+        const extraOwed = owedByDate.get(day.date) ?? 0;
+        const net = day.net - extraOwed;
         return (
           <section
             key={day.date}
@@ -33,13 +35,13 @@ export function DayList({
               <h2 className="text-sm font-semibold">{formatDay(day.date)}</h2>
               <p className="text-xs tabular text-muted">
                 {money(day.gross)} gross
-                {(day.wifePaid > 0 || lump > 0) && ` · ${money(net)} net`}
+                {(day.owed > 0 || extraOwed > 0) && ` · ${money(net)} net`}
               </p>
             </div>
 
-            {lump > 0 && (
+            {extraOwed > 0 && (
               <p className="border-b border-line bg-panel-2/50 px-4 py-1.5 text-xs tabular text-pink-300">
-                −{money(lump)} paid to wife
+                −{money(extraOwed)} she earned on untracked work
               </p>
             )}
 

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { entries, settings, wifePayments, type Kind } from "../src/db/schema";
+import { entries, settings, wifeLedger, type Kind } from "../src/db/schema";
 import { scriptDb } from "./db";
 import { parseCsv } from "./csv";
 
@@ -73,9 +73,13 @@ async function main() {
     };
   });
 
+  // These are cash already handed over, so they land on the "paid" side of
+  // the ledger. What she earned for that work isn't captured by any entry;
+  // add an "owed" row on /wife if you want the balance to reflect it.
   const paymentRows = read("seed-wife-payments.csv").map((r, i) => ({
     seedKey: `seed-wife-payments#${i + 1}`,
     date: r.date,
+    kind: "paid" as const,
     amount: money(r.amount),
     notes: r.notes ?? "",
   }));
@@ -89,10 +93,10 @@ async function main() {
     .returning({ id: entries.id });
 
   const insertedPayments = await db
-    .insert(wifePayments)
+    .insert(wifeLedger)
     .values(paymentRows)
-    .onConflictDoNothing({ target: wifePayments.seedKey })
-    .returning({ id: wifePayments.id });
+    .onConflictDoNothing({ target: wifeLedger.seedKey })
+    .returning({ id: wifeLedger.id });
 
   await db
     .insert(settings)

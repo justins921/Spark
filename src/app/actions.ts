@@ -5,9 +5,16 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { entries, wifePayments, type Kind, KINDS } from "@/db/schema";
+import {
+  entries,
+  wifeLedger,
+  type Kind,
+  KINDS,
+  type LedgerKind,
+  LEDGER_KINDS,
+} from "@/db/schema";
 import { SESSION_COOKIE, safeEqual, sessionToken } from "@/lib/auth";
-import { setWeeklyGoal } from "@/lib/data";
+import { getOutstanding, setWeeklyGoal } from "@/lib/data";
 import { numOrNull, toNumeric } from "@/lib/money";
 import { todayISO } from "@/lib/week";
 
@@ -135,11 +142,17 @@ export async function deleteEntry(formData: FormData) {
   redirect("/");
 }
 
-export async function addWifePayment(formData: FormData) {
+export async function addLedgerEntry(formData: FormData) {
   const amount = money(formData, "amount");
+  const kindRaw = String(formData.get("ledgerKind") ?? "paid");
+  const kind: LedgerKind = (LEDGER_KINDS as readonly string[]).includes(kindRaw)
+    ? (kindRaw as LedgerKind)
+    : "paid";
+
   if (amount) {
-    await db.insert(wifePayments).values({
+    await db.insert(wifeLedger).values({
       date: str(formData, "date") ?? todayISO(),
+      kind,
       amount,
       notes: str(formData, "notes") ?? "",
     });
@@ -148,9 +161,24 @@ export async function addWifePayment(formData: FormData) {
   redirect("/wife");
 }
 
-export async function deleteWifePayment(formData: FormData) {
+export async function deleteLedgerEntry(formData: FormData) {
   const id = numOrNull(str(formData, "id"));
-  if (id) await db.delete(wifePayments).where(eq(wifePayments.id, id));
+  if (id) await db.delete(wifeLedger).where(eq(wifeLedger.id, id));
+  refreshAll();
+  redirect("/wife");
+}
+
+/** One tap: record a payment for exactly what is still outstanding. */
+export async function settleUp() {
+  const outstanding = await getOutstanding();
+  if (outstanding > 0) {
+    await db.insert(wifeLedger).values({
+      date: todayISO(),
+      kind: "paid",
+      amount: toNumeric(outstanding),
+      notes: "Settled up",
+    });
+  }
   refreshAll();
   redirect("/wife");
 }

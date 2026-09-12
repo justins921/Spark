@@ -3,11 +3,7 @@ import { notFound } from "next/navigation";
 import { DayList } from "@/components/day-list";
 import { Card, Empty, Shell } from "@/components/shell";
 import { groupByDay, summarize } from "@/lib/calc";
-import {
-  getEntriesInWeek,
-  getPaymentsInWeek,
-  getWeeklyGoal,
-} from "@/lib/data";
+import { getEntriesInWeek, getLedgerInWeek, getWeeklyGoal } from "@/lib/data";
 import { money, round2 } from "@/lib/money";
 import { formatDate, formatWeekRange, weekOf } from "@/lib/week";
 
@@ -22,13 +18,13 @@ export default async function WeekDetailPage({
   if (!/^\d{4}-\d{2}-\d{2}$/.test(week)) notFound();
   const monday = weekOf(week);
 
-  const [entries, payments, weeklyGoal] = await Promise.all([
+  const [entries, ledger, weeklyGoal] = await Promise.all([
     getEntriesInWeek(monday),
-    getPaymentsInWeek(monday),
+    getLedgerInWeek(monday),
     getWeeklyGoal(),
   ]);
 
-  const s = summarize(entries, payments, weeklyGoal, monday);
+  const s = summarize(entries, ledger, weeklyGoal, monday);
   const days = groupByDay(entries);
   const onPace = round2(s.vsGoal) >= 0;
 
@@ -54,13 +50,14 @@ export default async function WeekDetailPage({
           </div>
           <div>
             <p className="text-[11px] uppercase tracking-wide text-muted">
-              Paid wife
+              Her share
             </p>
             <p className="text-xl font-semibold text-pink-300">
-              {money(s.paidWife)}
+              {money(s.owed)}
             </p>
             <p className="text-[11px] text-muted">
-              {money(s.wifeFromEntries)} splits + {money(s.wifeFromPayments)} lump
+              {money(s.owedFromEntries)} splits
+              {s.owedAdjustments > 0 && ` + ${money(s.owedAdjustments)} untracked`}
             </p>
           </div>
           <div>
@@ -74,19 +71,24 @@ export default async function WeekDetailPage({
         </div>
       </Card>
 
-      {payments.length > 0 && (
+      {ledger.length > 0 && (
         <Card className="mb-3">
           <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
-            Lump payments
+            Wife ledger this week
           </p>
           <ul className="space-y-1 text-sm tabular">
-            {payments.map((p) => (
-              <li key={p.id} className="flex justify-between gap-3">
+            {ledger.map((row) => (
+              <li key={row.id} className="flex justify-between gap-3">
                 <span className="truncate text-muted">
-                  {formatDate(p.date)}
-                  {p.notes && ` · ${p.notes}`}
+                  {formatDate(row.date)}
+                  {row.notes && ` · ${row.notes}`}
                 </span>
-                <span className="shrink-0 text-pink-300">{money(p.amount)}</span>
+                <span
+                  className={`shrink-0 ${row.kind === "paid" ? "text-good" : "text-pink-300"}`}
+                >
+                  {row.kind === "paid" ? "paid " : "owed "}
+                  {money(row.amount)}
+                </span>
               </li>
             ))}
           </ul>
@@ -96,7 +98,7 @@ export default async function WeekDetailPage({
       {days.length === 0 ? (
         <Empty>No entries in this week.</Empty>
       ) : (
-        <DayList days={days} payments={payments} />
+        <DayList days={days} ledger={ledger} />
       )}
     </Shell>
   );

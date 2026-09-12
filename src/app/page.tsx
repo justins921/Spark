@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Card, Empty, Shell } from "@/components/shell";
 import { DayList } from "@/components/day-list";
-import { groupByDay, runningNet, summarize } from "@/lib/calc";
+import { groupByDay, runningNet, summarize, sumKind } from "@/lib/calc";
 import {
   getEntriesInWeek,
-  getPaymentsInWeek,
+  getLedgerInWeek,
+  getOutstanding,
   getWeeklyGoal,
 } from "@/lib/data";
 import { money, round2, signedMoney } from "@/lib/money";
@@ -16,20 +17,24 @@ export default async function ThisWeekPage() {
   const today = todayISO();
   const monday = weekOf(today);
 
-  const [entries, payments, weeklyGoal] = await Promise.all([
+  const [entries, ledger, weeklyGoal, outstanding] = await Promise.all([
     getEntriesInWeek(monday),
-    getPaymentsInWeek(monday),
+    getLedgerInWeek(monday),
     getWeeklyGoal(),
+    getOutstanding(),
   ]);
 
-  const s = summarize(entries, payments, weeklyGoal, monday);
+  const s = summarize(entries, ledger, weeklyGoal, monday);
   const days = groupByDay(entries);
-  const paymentsByDate = new Map<string, number>();
-  for (const p of payments) {
-    paymentsByDate.set(p.date, (paymentsByDate.get(p.date) ?? 0) + p.amount);
+
+  const owedByDate = new Map<string, number>();
+  for (const row of ledger) {
+    if (row.kind !== "owed") continue;
+    owedByDate.set(row.date, (owedByDate.get(row.date) ?? 0) + row.amount);
   }
-  const pace = runningNet(days, paymentsByDate);
-  const onPace = s.vsGoal >= 0;
+  const pace = runningNet(days, owedByDate);
+  const onPace = round2(s.vsGoal) >= 0;
+  const stillOwes = round2(outstanding);
 
   return (
     <Shell title="This week" subtitle={`${formatWeekRange(monday)} · today ${formatDate(today)}`}>
@@ -60,13 +65,37 @@ export default async function ThisWeekPage() {
             <p className="mt-0.5 text-lg font-semibold tabular">{money(s.tips)}</p>
           </div>
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-muted">Wife</p>
+            <p className="text-[11px] uppercase tracking-wide text-muted">
+              Her share
+            </p>
             <p className="mt-0.5 text-lg font-semibold tabular text-pink-300">
-              {money(s.paidWife)}
+              {money(s.owed)}
             </p>
           </div>
         </div>
       </Card>
+
+      {/* The balance, so mid-week you know whether you're behind with her. */}
+      <Link href="/wife" className="mb-3 block active:opacity-80">
+        <Card>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">
+                {stillOwes < 0 ? "Paid ahead" : "Still owe her"}
+              </p>
+              <p
+                className={`mt-0.5 text-2xl font-bold tabular ${stillOwes > 0 ? "text-pink-300" : "text-good"}`}
+              >
+                {money(Math.abs(stillOwes))}
+              </p>
+            </div>
+            <div className="text-right text-xs tabular text-muted">
+              <p>{money(s.owed)} earned this week</p>
+              <p>{money(s.paid)} paid this week</p>
+            </div>
+          </div>
+        </Card>
+      </Link>
 
       {pace.length > 1 && (
         <Card className="mb-3">
@@ -87,26 +116,10 @@ export default async function ThisWeekPage() {
         </Card>
       )}
 
-      {payments.length > 0 && (
-        <Card className="mb-3">
-          <div className="flex items-baseline justify-between">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted">
-              Lump payments to wife
-            </p>
-            <p className="text-sm font-semibold tabular text-pink-300">
-              {money(s.wifeFromPayments)}
-            </p>
-          </div>
-          <p className="mt-1 text-xs text-muted">
-            {money(s.wifeFromEntries)} more came out of entry splits.
-          </p>
-        </Card>
-      )}
-
       {days.length === 0 ? (
         <Empty>Nothing logged this week yet.</Empty>
       ) : (
-        <DayList days={days} payments={payments} />
+        <DayList days={days} ledger={ledger} />
       )}
 
       {/* Sits flush on top of the tab bar (3rem tall + safe area) so no

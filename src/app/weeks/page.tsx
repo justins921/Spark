@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Card, Empty, Shell } from "@/components/shell";
 import { summarize, type WeekSummary } from "@/lib/calc";
-import { getAllEntries, getAllPayments, getWeeklyGoal } from "@/lib/data";
+import { getAllEntries, getAllLedger, getWeeklyGoal } from "@/lib/data";
 import { money, round2 } from "@/lib/money";
 import { formatShort, weekEnd, weekOf } from "@/lib/week";
 
@@ -32,35 +32,35 @@ function WeekRow({ week }: { week: WeekSummary }) {
       </div>
       <p className="mt-1 text-xs tabular text-muted">
         {money(week.gross)} gross · {money(week.tips)} tips ·{" "}
-        <span className="text-pink-300">{money(week.paidWife)} wife</span>
+        <span className="text-pink-300">{money(week.owed)} her share</span>
       </p>
     </Link>
   );
 }
 
 export default async function WeeksPage() {
-  const [entries, payments, weeklyGoal] = await Promise.all([
+  const [entries, ledger, weeklyGoal] = await Promise.all([
     getAllEntries(),
-    getAllPayments(),
+    getAllLedger(),
     getWeeklyGoal(),
   ]);
 
   const weeks = new Set<string>();
   for (const e of entries) weeks.add(weekOf(e.date));
-  for (const p of payments) weeks.add(weekOf(p.date));
+  for (const row of ledger) weeks.add(weekOf(row.date));
 
   const rows = [...weeks]
     .sort((a, b) => (a < b ? 1 : -1))
     .map((monday) =>
       summarize(
         entries.filter((e) => weekOf(e.date) === monday),
-        payments.filter((p) => weekOf(p.date) === monday),
+        ledger.filter((row) => weekOf(row.date) === monday),
         weeklyGoal,
         monday,
       ),
     );
 
-  const lifetime = summarize(entries, payments, 0);
+  const lifetime = summarize(entries, ledger, 0);
 
   return (
     <Shell
@@ -97,8 +97,8 @@ export default async function WeeksPage() {
                 <dd>{money(lifetime.tips)}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted">Paid wife</dt>
-                <dd className="text-pink-300">{money(lifetime.paidWife)}</dd>
+                <dt className="text-muted">Her share</dt>
+                <dd className="text-pink-300">{money(lifetime.owed)}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted">Entries</dt>
