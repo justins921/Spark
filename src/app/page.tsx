@@ -37,13 +37,27 @@ export default async function ThisWeekPage() {
   const stillOwes = round2(outstanding);
 
   return (
-    <Shell title="This week" subtitle={`${formatWeekRange(monday)} · today ${formatDate(today)}`}>
+    <Shell
+      title="This week"
+      subtitle={`${formatWeekRange(monday)} · today ${formatDate(today)}`}
+      action={
+        // On phones the add button is the sticky bar at the bottom; once
+        // there's a pointer (or a short landscape viewport) it lives up here
+        // instead, so it can't crowd the tab bar or the content.
+        <Link
+          href="/add"
+          className="hidden shrink-0 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-ink active:opacity-90 sm:block"
+        >
+          + Add entry
+        </Link>
+      }
+    >
       <Card className="mb-3">
         <p className="text-xs font-medium uppercase tracking-wide text-muted">
           Net
         </p>
         <p
-          className={`mt-1 text-5xl font-bold tabular ${onPace ? "text-good" : "text-text"}`}
+          className={`mt-1 text-4xl font-bold tabular xs:text-5xl ${onPace ? "text-good" : "text-text"}`}
         >
           {money(s.net)}
         </p>
@@ -55,31 +69,36 @@ export default async function ThisWeekPage() {
             : `${money(Math.abs(round2(s.vsGoal)))} short of the ${money(weeklyGoal)} goal`}
         </p>
 
-        <div className="mt-4 grid grid-cols-3 gap-2 border-t border-line pt-3 text-center">
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-muted">Gross</p>
-            <p className="mt-0.5 text-lg font-semibold tabular">{money(s.gross)}</p>
-          </div>
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-muted">Tips</p>
-            <p className="mt-0.5 text-lg font-semibold tabular">{money(s.tips)}</p>
-          </div>
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-muted">
-              Her share
-            </p>
-            <p className="mt-0.5 text-lg font-semibold tabular text-pink-300">
-              {money(s.owed)}
-            </p>
-          </div>
-        </div>
+        {/* Three across once there's room; stacked label/value rows below
+            that, so a four-figure week can't clip. */}
+        <dl className="mt-4 grid grid-cols-1 gap-1 border-t border-line pt-3 xs:grid-cols-3 xs:gap-2 xs:text-center">
+          {[
+            { label: "Gross", value: money(s.gross), tone: "" },
+            { label: "Tips", value: money(s.tips), tone: "" },
+            { label: "Her share", value: money(s.owed), tone: "text-pink-300" },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="flex min-w-0 items-baseline justify-between gap-2 xs:block"
+            >
+              <dt className="text-[11px] uppercase tracking-wide text-muted">
+                {stat.label}
+              </dt>
+              <dd
+                className={`text-base font-semibold tabular xs:mt-0.5 sm:text-lg ${stat.tone}`}
+              >
+                {stat.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </Card>
 
       {/* The balance, so mid-week you know whether you're behind with her. */}
       <Link href="/wife" className="mb-3 block active:opacity-80">
         <Card>
-          <div className="flex items-center justify-between gap-3">
-            <div>
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+            <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-wide text-muted">
                 {stillOwes < 0 ? "Paid ahead" : "Still owe her"}
               </p>
@@ -89,7 +108,7 @@ export default async function ThisWeekPage() {
                 {money(Math.abs(stillOwes))}
               </p>
             </div>
-            <div className="text-right text-xs tabular text-muted">
+            <div className="min-w-0 text-xs tabular text-muted sm:text-right">
               <p>{money(s.owed)} earned this week</p>
               <p>{money(s.paid)} paid this week</p>
             </div>
@@ -104,12 +123,13 @@ export default async function ThisWeekPage() {
           </p>
           <ul className="space-y-1 text-sm tabular">
             {pace.map((p) => (
-              <li key={p.date} className="flex justify-between">
-                <span className="text-muted">{formatDay(p.date)}</span>
-                <span>
-                  <span className="text-muted">{money(p.net)}</span>
-                  <span className="ml-3 font-semibold">{money(p.cumulative)}</span>
-                </span>
+              <li
+                key={p.date}
+                className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-x-2 xs:gap-x-3"
+              >
+                <span className="truncate text-muted">{formatDay(p.date)}</span>
+                <span className="text-muted">{money(p.net)}</span>
+                <span className="font-semibold">{money(p.cumulative)}</span>
               </li>
             ))}
           </ul>
@@ -123,8 +143,8 @@ export default async function ThisWeekPage() {
       )}
 
       {/* Sits flush on top of the tab bar (3rem tall + safe area) so no
-          content shows through the gap. */}
-      <div className="fixed inset-x-0 bottom-[calc(3rem+env(safe-area-inset-bottom))] z-30 bg-gradient-to-t from-ink from-60% to-transparent px-4 pt-10 pb-3">
+          content shows through the gap. Hidden once the header carries it. */}
+      <div className="fixed inset-x-0 bottom-[calc(3rem+env(safe-area-inset-bottom))] z-30 bg-gradient-to-t from-ink from-60% to-transparent px-4 pt-10 pb-3 sm:hidden">
         <div className="mx-auto max-w-lg">
           <Link
             href="/add"

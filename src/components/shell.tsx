@@ -14,10 +14,12 @@ export function Shell({
 }) {
   return (
     <>
-      <div className="mx-auto max-w-lg px-4 pt-5 pb-32">
+      <div className="mx-auto max-w-lg px-3 pt-5 pb-32 xs:px-4 sm:max-w-xl sm:pb-24 lg:max-w-2xl lg:px-6">
         <header className="mb-4 flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-semibold tracking-tight">
+              {title}
+            </h1>
             {subtitle && (
               <p className="mt-0.5 text-sm text-muted">{subtitle}</p>
             )}

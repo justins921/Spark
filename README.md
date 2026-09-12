@@ -137,6 +137,25 @@ unique, so re-running only fills in what's missing — it never duplicates rows 
 overwrites edits you made in the app. Rows you add yourself have a null
 `seed_key` and are never touched.
 
+## Layout
+
+One column on phones, widening as there's room. The breakpoints that matter:
+
+| Width | What changes |
+| ----- | ------------ |
+| < 360px | Summary figures stack as label/value rows; paired form fields go one per line; the base/tip split is dropped from entry rows |
+| ≥ 360px (`xs`) | Figures go three across, form fields pair up |
+| ≥ 640px (`sm`) | "+ Add entry" moves into the page header and the sticky bottom bar disappears; the tab bar becomes a centred pill |
+| ≥ 1024px (`lg`) | Slightly wider column, roomier gutters |
+
+It's checked at 16 viewports from 280×653 up to 1920×1080, including phone
+landscape, against every page — no sideways scroll, no clipped figures, no
+overlapping fixed chrome, no tap target under 36px. Four-figure amounts are
+part of the check, so a big week won't break a row.
+
+Everything is plain CSS media queries with no JS measurement, so a folding
+phone reflows live as it opens and closes rather than needing a reload.
+
 ## Notes
 
 - The whole app sits behind middleware; anything but `/login` redirects when

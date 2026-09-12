@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 @theme {
+  /* Below this, phones get one column and the tighter type scale.
+     Covers 280-360px: old SE, split-screen, and a folded foldable. */
+  --breakpoint-xs: 22.5rem;
+
   --color-ink: #0b0f14;
   --color-panel: #141b23;
   --color-panel-2: #1c2530;

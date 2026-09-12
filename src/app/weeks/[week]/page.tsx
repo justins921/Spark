@@ -33,26 +33,29 @@ export default async function WeekDetailPage({
       title={formatWeekRange(monday)}
       subtitle={`${s.entryCount} entries · ${s.wifeEntryCount} with wife`}
       action={
-        <Link href="/weeks" className="text-sm font-medium text-accent">
+        <Link
+          href="/weeks"
+          className="shrink-0 py-3 pl-3 text-sm font-medium text-accent"
+        >
           Back
         </Link>
       }
     >
       <Card className="mb-3">
-        <div className="grid grid-cols-2 gap-3 text-sm tabular">
+        <div className="grid grid-cols-1 gap-3 text-sm tabular xs:grid-cols-2">
           <div>
             <p className="text-[11px] uppercase tracking-wide text-muted">Gross</p>
-            <p className="text-xl font-semibold">{money(s.gross)}</p>
+            <p className="text-lg font-semibold xs:text-xl">{money(s.gross)}</p>
           </div>
           <div>
             <p className="text-[11px] uppercase tracking-wide text-muted">Tips</p>
-            <p className="text-xl font-semibold">{money(s.tips)}</p>
+            <p className="text-lg font-semibold xs:text-xl">{money(s.tips)}</p>
           </div>
           <div>
             <p className="text-[11px] uppercase tracking-wide text-muted">
               Her share
             </p>
-            <p className="text-xl font-semibold text-pink-300">
+            <p className="text-lg font-semibold text-pink-300 xs:text-xl">
               {money(s.owed)}
             </p>
             <p className="text-[11px] text-muted">
@@ -62,7 +65,7 @@ export default async function WeekDetailPage({
           </div>
           <div>
             <p className="text-[11px] uppercase tracking-wide text-muted">Net</p>
-            <p className="text-xl font-semibold">{money(s.net)}</p>
+            <p className="text-lg font-semibold xs:text-xl">{money(s.net)}</p>
             <p className={`text-[11px] ${onPace ? "text-good" : "text-bad"}`}>
               {onPace ? "+" : "−"}
               {money(Math.abs(round2(s.vsGoal)))} vs goal

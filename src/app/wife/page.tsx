@@ -98,7 +98,10 @@ export default async function WifePage() {
       ) : (
         <ul className="mb-3 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-panel">
           {ledger.map((row) => (
-            <li key={row.id} className="flex items-center gap-3 px-4 py-3">
+            <li
+              key={row.id}
+              className="flex flex-wrap items-center gap-2 px-3 py-3 xs:gap-3 xs:px-4"
+            >
               <span
                 className={`shrink-0 rounded px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
                   row.kind === "paid"
@@ -108,7 +111,9 @@ export default async function WifePage() {
               >
                 {row.kind}
               </span>
-              <div className="min-w-0 flex-1">
+              {/* A real min-width here makes the amount and delete wrap to a
+                  second line on a very narrow screen instead of squeezing. */}
+              <div className="min-w-[6rem] flex-1">
                 <p className="text-sm font-medium tabular">
                   {formatDate(row.date)}
                 </p>
@@ -117,7 +122,7 @@ export default async function WifePage() {
                 )}
               </div>
               <p
-                className={`shrink-0 text-base font-semibold tabular ${
+                className={`ml-auto shrink-0 text-base font-semibold tabular ${
                   row.kind === "paid" ? "text-good" : "text-pink-300"
                 }`}
               >
@@ -128,7 +133,7 @@ export default async function WifePage() {
                 <ConfirmButton
                   message={`Delete this ${money(row.amount)} ${row.kind} row?`}
                   aria-label="Delete ledger row"
-                  className="rounded-lg border border-line px-2.5 py-1.5 text-xs text-bad active:bg-panel-2"
+                  className="shrink-0 rounded-lg border border-line px-2.5 py-2.5 text-xs text-bad active:bg-panel-2"
                 >
                   Delete
                 </ConfirmButton>

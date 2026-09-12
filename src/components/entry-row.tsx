@@ -50,7 +50,7 @@ export function EntryRow({ entry }: { entry: EntryView }) {
   return (
     <Link
       href={`/add?id=${entry.id}`}
-      className="flex items-center gap-3 px-4 py-3 active:bg-panel-2"
+      className="flex items-center gap-2 px-3 py-3 active:bg-panel-2 xs:gap-3 xs:px-4"
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -69,9 +69,11 @@ export function EntryRow({ entry }: { entry: EntryView }) {
         )}
       </div>
 
-      <div className="shrink-0 text-right tabular">
+      {/* Allowed to shrink so a four-figure total can't push the page wide.
+          The base/tip split is the first thing to go on a narrow screen. */}
+      <div className="min-w-0 text-right tabular">
         <p className="text-base font-semibold">{money(entry.total)}</p>
-        <p className="text-[11px] text-muted">
+        <p className="hidden text-[11px] text-muted xs:block">
           {money(entry.base)} base · {money(entry.tip)} tip
         </p>
         {entry.wifePaid > 0 && (

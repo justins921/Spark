@@ -101,7 +101,7 @@ export function EntryForm({
             key={k.value}
             type="button"
             onClick={() => setKind(k.value)}
-            className={`rounded-lg py-2.5 text-sm font-semibold ${
+            className={`rounded-lg px-1 py-2.5 text-xs font-semibold xs:text-sm ${
               kind === k.value ? "bg-accent text-ink" : "text-muted"
             }`}
           >
@@ -121,7 +121,7 @@ export function EntryForm({
 
       {kind === "trip" && (
         <>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 xs:grid-cols-2">
             <Field label="Est. base">
               <MoneyInput
                 name="estBase"
@@ -132,7 +132,7 @@ export function EntryForm({
               <MoneyInput name="estTip" defaultValue={entry?.estTip ?? ""} />
             </Field>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 xs:grid-cols-2">
             <Field label="Actual base">
               <MoneyInput
                 name="base"
@@ -148,7 +148,7 @@ export function EntryForm({
               />
             </Field>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 xs:grid-cols-2">
             <Field label="Trip #">
               <input
                 type="text"
@@ -225,14 +225,14 @@ export function EntryForm({
 
       {kind !== "incentive" && (
         <div className="rounded-xl border border-line bg-panel p-4">
-          <label className="flex items-center justify-between gap-3">
+          <label className="-my-1 flex cursor-pointer items-center justify-between gap-3 py-1">
             <span className="text-sm font-medium">Wife along</span>
             <input
               type="checkbox"
               name="wifeAlong"
               checked={wifeAlong}
               onChange={(e) => setWifeAlong(e.target.checked)}
-              className="h-6 w-11 appearance-none rounded-full bg-line transition-colors checked:bg-pink-400 relative before:absolute before:top-0.5 before:left-0.5 before:h-5 before:w-5 before:rounded-full before:bg-white before:transition-transform checked:before:translate-x-5"
+              className="relative h-8 w-14 shrink-0 appearance-none rounded-full bg-line transition-colors before:absolute before:top-1 before:left-1 before:h-6 before:w-6 before:rounded-full before:bg-white before:transition-transform checked:bg-pink-400 checked:before:translate-x-6"
             />
           </label>
 

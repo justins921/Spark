@@ -54,7 +54,7 @@ export function LedgerForm({
       </div>
       <p className="text-xs text-muted">{active.hint}</p>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 xs:grid-cols-2">
         <input
           type="date"
           name="date"

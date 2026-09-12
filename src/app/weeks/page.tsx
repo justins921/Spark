@@ -87,7 +87,7 @@ export default async function WeeksPage() {
               {money(lifetime.net)}
               <span className="ml-2 text-sm font-normal text-muted">net</span>
             </p>
-            <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 border-t border-line pt-3 text-sm tabular">
+            <dl className="mt-3 grid grid-cols-1 gap-x-4 gap-y-1 border-t border-line pt-3 text-sm tabular xs:grid-cols-2">
               <div className="flex justify-between">
                 <dt className="text-muted">Gross</dt>
                 <dd>{money(lifetime.gross)}</dd>
