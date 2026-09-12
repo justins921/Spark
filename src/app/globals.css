@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #0b0f14;
+  --color-panel: #141b23;
+  --color-panel-2: #1c2530;
+  --color-line: #263241;
+  --color-text: #e8eef5;
+  --color-muted: #8fa3b8;
+  --color-good: #34d399;
+  --color-bad: #f87171;
+  --color-accent: #38bdf8;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  /* Keep content clear of the iOS home indicator. */
+  padding-bottom: env(safe-area-inset-bottom);
+  overscroll-behavior-y: contain;
+}
+
+/* Tap targets shouldn't flash grey on iOS. */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px; /* stops iOS Safari from zooming on focus */
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

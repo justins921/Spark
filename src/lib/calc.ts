@@ -1,0 +1,155 @@
+import type { Entry, WifePayment } from "@/db/schema";
+import { num, numOrNull, round2 } from "./money";
+import { weekOf } from "./week";
+
+/** An entry with its money parsed and its derived numbers worked out. */
+export type EntryView = {
+  id: number;
+  date: string;
+  kind: Entry["kind"];
+  estBase: number | null;
+  estTip: number | null;
+  base: number;
+  tip: number;
+  total: number;
+  wifeAlong: boolean;
+  wifePaidOverride: number | null;
+  wifePaid: number;
+  tripNumber: string | null;
+  orders: number | null;
+  completedTime: string | null;
+  orderNumber: string | null;
+  deliveredDate: string | null;
+  notes: string;
+};
+
+/** wife_paid_override if set, else half the total when she rode along, else 0. */
+export function wifePaidFor(
+  total: number,
+  wifeAlong: boolean,
+  override: number | null,
+): number {
+  if (override !== null) return override;
+  return wifeAlong ? total / 2 : 0;
+}
+
+export function toEntryView(e: Entry): EntryView {
+  const base = num(e.base);
+  const tip = num(e.tip);
+  const total = base + tip;
+  const override = numOrNull(e.wifePaidOverride);
+  return {
+    id: e.id,
+    date: e.date,
+    kind: e.kind,
+    estBase: numOrNull(e.estBase),
+    estTip: numOrNull(e.estTip),
+    base,
+    tip,
+    total,
+    wifeAlong: e.wifeAlong,
+    wifePaidOverride: override,
+    wifePaid: wifePaidFor(total, e.wifeAlong, override),
+    tripNumber: e.tripNumber,
+    orders: e.orders,
+    completedTime: e.completedTime,
+    orderNumber: e.orderNumber,
+    deliveredDate: e.deliveredDate,
+    notes: e.notes,
+  };
+}
+
+export type PaymentView = {
+  id: number;
+  date: string;
+  amount: number;
+  notes: string;
+};
+
+export function toPaymentView(p: WifePayment): PaymentView {
+  return { id: p.id, date: p.date, amount: num(p.amount), notes: p.notes };
+}
+
+export type WeekSummary = {
+  weekOf: string;
+  entryCount: number;
+  wifeEntryCount: number;
+  gross: number;
+  tips: number;
+  /** Entry halves/overrides only — the lump payments are tracked separately. */
+  wifeFromEntries: number;
+  wifeFromPayments: number;
+  paidWife: number;
+  net: number;
+  vsGoal: number;
+};
+
+export function summarize(
+  entries: EntryView[],
+  payments: PaymentView[],
+  weeklyGoal: number,
+  week?: string,
+): WeekSummary {
+  const gross = entries.reduce((s, e) => s + e.total, 0);
+  const tips = entries.reduce((s, e) => s + e.tip, 0);
+  const wifeFromEntries = entries.reduce((s, e) => s + e.wifePaid, 0);
+  const wifeFromPayments = payments.reduce((s, p) => s + p.amount, 0);
+  const paidWife = wifeFromEntries + wifeFromPayments;
+  const net = gross - paidWife;
+  return {
+    weekOf: week ?? (entries[0] ? weekOf(entries[0].date) : ""),
+    entryCount: entries.length,
+    wifeEntryCount: entries.filter((e) => e.wifeAlong).length,
+    gross,
+    tips,
+    wifeFromEntries,
+    wifeFromPayments,
+    paidWife,
+    net,
+    // Measured off the net as it is displayed, so "net $449.77" and
+    // "$50.23 short of $500.00" always add back up on screen.
+    vsGoal: round2(net) - weeklyGoal,
+  };
+}
+
+/** Group entries by day, newest day first, each day carrying its own subtotals. */
+export type DayGroup = {
+  date: string;
+  entries: EntryView[];
+  gross: number;
+  wifePaid: number;
+  net: number;
+};
+
+export function groupByDay(entries: EntryView[]): DayGroup[] {
+  const byDate = new Map<string, EntryView[]>();
+  for (const e of entries) {
+    const list = byDate.get(e.date);
+    if (list) list.push(e);
+    else byDate.set(e.date, [e]);
+  }
+  return [...byDate.entries()]
+    .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+    .map(([date, list]) => {
+      const gross = list.reduce((s, e) => s + e.total, 0);
+      const wifePaid = list.reduce((s, e) => s + e.wifePaid, 0);
+      return { date, entries: list, gross, wifePaid, net: gross - wifePaid };
+    });
+}
+
+/**
+ * Running net through the week, oldest day first, so mid-week you can see
+ * whether you are on pace.
+ */
+export function runningNet(
+  days: DayGroup[],
+  paymentsByDate: Map<string, number>,
+): { date: string; net: number; cumulative: number }[] {
+  const oldestFirst = [...days].sort((a, b) => (a.date < b.date ? -1 : 1));
+  let cumulative = 0;
+  return oldestFirst.map((d) => {
+    const net = d.net - (paymentsByDate.get(d.date) ?? 0);
+    cumulative += net;
+    return { date: d.date, net, cumulative };
+  });
+}
