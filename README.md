@@ -227,6 +227,10 @@ phone reflows live as it opens and closes rather than needing a reload.
   you're not signed in. The session cookie is a digest of `APP_PASSWORD`.
 - Numeric fields use `inputMode="decimal"` so phones show the number pad, and
   inputs are 16px so iOS Safari doesn't zoom on focus.
+- "Today" is judged in `APP_TIMEZONE` (default `America/Chicago`), not the
+  server's clock. Vercel runs in UTC, so without it a trip logged at 9pm
+  Central would land on tomorrow's date and roll the week over five hours
+  early. Set the env var if you move; DST is handled automatically.
 - The connection string is read from the first of `DATABASE_URL`,
   `STORAGE_URL`, `POSTGRES_URL`, `DATABASE_URL_UNPOOLED`, `STORAGE_URL_UNPOOLED`
   or `POSTGRES_URL_NON_POOLING` that is set, so it works with whatever Vercel's

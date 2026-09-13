@@ -14,14 +14,22 @@ export function toISODate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** Today in the user's local timezone, as YYYY-MM-DD. */
-export function todayISO(): string {
-  const now = new Date();
-  return [
-    now.getFullYear(),
-    String(now.getMonth() + 1).padStart(2, "0"),
-    String(now.getDate()).padStart(2, "0"),
-  ].join("-");
+/**
+ * The timezone "today" is judged in. Vercel runs in UTC, so without this a
+ * delivery logged at 9pm Central lands on tomorrow's date and rolls the week
+ * over five hours early. Override with APP_TIMEZONE if you move.
+ */
+export const APP_TIMEZONE = process.env.APP_TIMEZONE || "America/Chicago";
+
+/** Today where you are, as YYYY-MM-DD — not where the server is. */
+export function todayISO(timeZone: string = APP_TIMEZONE): string {
+  // en-CA formats as YYYY-MM-DD, which is the shape we store.
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }
 
 export function addDays(iso: string, days: number): string {
