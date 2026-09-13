@@ -6,7 +6,9 @@ import * as schema from "./schema";
 /**
  * Vercel's Neon integration names the connection string differently depending
  * on how the store was created — DATABASE_URL, STORAGE_URL and POSTGRES_URL
- * are all in the wild. Take whichever one is set rather than pinning a name.
+ * are all in the wild, and a store created with a custom prefix produces
+ * something else again. Check the known names first, then fall back to any
+ * variable whose value is actually a Postgres URL, so the name stops mattering.
  * Pooled URLs come first; the unpooled ones are a fallback.
  */
 export const CONNECTION_ENV_KEYS = [
@@ -18,22 +20,50 @@ export const CONNECTION_ENV_KEYS = [
   "POSTGRES_URL_NON_POOLING",
 ] as const;
 
-/** The connection string, or null when none of the known names is set. */
+const POSTGRES_URL = /^postgres(ql)?:\/\/\S+$/i;
+
+/** The connection string, or null when nothing in the environment looks like one. */
 export function findConnectionString(
   env: NodeJS.ProcessEnv = process.env,
 ): string | null {
   for (const key of CONNECTION_ENV_KEYS) {
-    const value = env[key];
-    if (value && value.trim() !== "") return value;
+    const value = env[key]?.trim();
+    if (value) return value;
   }
-  return null;
+  // Any other variable holding a Postgres URL, whatever it's called. Prefer a
+  // pooled one; *_UNPOOLED / *_NON_POOLING are the direct connection.
+  const candidates = Object.entries(env)
+    .filter(([, v]) => typeof v === "string" && POSTGRES_URL.test(v.trim()))
+    .map(([k, v]) => [k, (v as string).trim()] as const)
+    .sort(([a], [b]) => Number(isUnpooled(a)) - Number(isUnpooled(b)));
+  return candidates[0]?.[1] ?? null;
 }
 
-export function missingConnectionMessage(): string {
+function isUnpooled(key: string): boolean {
+  return /UNPOOLED|NON_POOLING/i.test(key);
+}
+
+/** Names only — never values — so a failure says what the environment holds. */
+export function databaseishEnvNames(
+  env: NodeJS.ProcessEnv = process.env,
+): string[] {
+  return Object.keys(env)
+    .filter((k) => /URL|POSTGRES|DATABASE|NEON|\bPG/i.test(k))
+    .sort();
+}
+
+export function missingConnectionMessage(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const seen = databaseishEnvNames(env);
   return (
-    `No database connection string found. Looked for: ${CONNECTION_ENV_KEYS.join(", ")}. ` +
-    "Add a Neon database from the Vercel Storage tab, then redeploy — or run " +
-    "`vercel env pull .env.local` for local development."
+    "No database connection string found. Checked " +
+    `${CONNECTION_ENV_KEYS.join(", ")}, and every other variable for a postgres:// value. ` +
+    (seen.length
+      ? `Database-ish variables present: ${seen.join(", ")}. `
+      : "No database-ish variables are set at all. ") +
+    "Connect a Neon database to THIS project from the Vercel Storage tab " +
+    "(Storage → your database → Connect Project), then redeploy."
   );
 }
 

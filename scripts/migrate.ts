@@ -1,7 +1,11 @@
 import { config } from "dotenv";
 config({ path: ".env.local" });
 
-import { findConnectionString, isNeonUrl } from "../src/db/index";
+import {
+  findConnectionString,
+  isNeonUrl,
+  missingConnectionMessage,
+} from "../src/db/index";
 
 async function main() {
   // This runs as part of the Vercel build. The very first build can happen
@@ -9,10 +13,7 @@ async function main() {
   // through rather than failing on a project that isn't wired up yet.
   const url = findConnectionString();
   if (!url) {
-    console.warn(
-      "\n  No database connection string found, so no migrations ran.\n" +
-        "  Add a Neon database from the Vercel Storage tab, then redeploy.\n",
-    );
+    console.warn(`\n  No migrations ran. ${missingConnectionMessage()}\n`);
     return;
   }
 
