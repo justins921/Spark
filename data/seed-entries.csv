@@ -30,5 +30,6 @@ date,kind,base,tip,wife_along,trip_number,orders,completed_time,notes
 2026-09-12,tip,0.00,2.82,N,,,,"Tip — order 200015159773449, delivered 9/11"
 2026-09-12,tip,0.00,5.00,N,,,,"Tip — order 200015149322559, delivered 9/11"
 2026-09-12,tip,0.00,5.10,N,,,,"Tip — order 200015405565265, delivered 9/11"
-2026-09-12,trip,66.69,0.00,N,,,,"Rest of Saturday — awaiting per-trip detail"
-2026-09-12,tip,0.00,2.00,N,,,,"Confirmed tip not yet matched to an order"
+2026-09-12,trip,43.27,0.00,N,2816,1,6:33 PM,
+2026-09-12,trip,23.42,0.00,N,0091,1,7:23 PM,
+2026-09-12,tip,0.00,2.00,N,,,,"Tip — order 200015117122703, delivered 9/11"

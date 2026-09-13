@@ -102,10 +102,13 @@ INSERT INTO entries (seed_key, date, kind, base, tip, wife_along, trip_number, o
 VALUES ('seed-entries#31', '2026-09-12', 'tip', '0.00', '5.10', false, NULL, NULL, NULL, '200015405565265', '2026-09-11', '')
 ON CONFLICT (seed_key) DO NOTHING;
 INSERT INTO entries (seed_key, date, kind, base, tip, wife_along, trip_number, orders, completed_time, order_number, delivered_date, notes)
-VALUES ('seed-entries#32', '2026-09-12', 'trip', '66.69', '0.00', false, NULL, NULL, NULL, NULL, NULL, 'Rest of Saturday — awaiting per-trip detail')
+VALUES ('seed-entries#32', '2026-09-12', 'trip', '43.27', '0.00', false, '2816', 1, '6:33 PM', NULL, NULL, '')
 ON CONFLICT (seed_key) DO NOTHING;
 INSERT INTO entries (seed_key, date, kind, base, tip, wife_along, trip_number, orders, completed_time, order_number, delivered_date, notes)
-VALUES ('seed-entries#33', '2026-09-12', 'tip', '0.00', '2.00', false, NULL, NULL, NULL, NULL, NULL, 'Confirmed tip not yet matched to an order')
+VALUES ('seed-entries#33', '2026-09-12', 'trip', '23.42', '0.00', false, '0091', 1, '7:23 PM', NULL, NULL, '')
+ON CONFLICT (seed_key) DO NOTHING;
+INSERT INTO entries (seed_key, date, kind, base, tip, wife_along, trip_number, orders, completed_time, order_number, delivered_date, notes)
+VALUES ('seed-entries#34', '2026-09-12', 'tip', '0.00', '2.00', false, NULL, NULL, NULL, '200015117122703', '2026-09-11', '')
 ON CONFLICT (seed_key) DO NOTHING;
 
 INSERT INTO wife_ledger (seed_key, date, kind, amount, notes)
