@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { deleteEntry, saveEntry } from "@/app/actions";
 import type { EntryView } from "@/lib/calc";
-import { money, num } from "@/lib/money";
+import { money, num, roundDollar } from "@/lib/money";
 import type { Kind } from "@/db/schema";
 
 const KINDS: { value: Kind; label: string }[] = [
@@ -105,8 +105,11 @@ export function EntryForm({
     kind === "trip" && (estBase.trim() !== "" || estTip.trim() !== "");
   const estTotal = num(estBase) + num(estTip);
   const basis = hasEstimate ? estTotal : total;
-  const half = basis / 2;
-  const effectiveWifePaid = override.trim() !== "" ? num(override) : half;
+  const exactHalf = basis / 2;
+  // She's paid in whole dollars, so the half is rounded before it counts.
+  const half = roundDollar(exactHalf);
+  const effectiveWifePaid =
+    override.trim() !== "" ? roundDollar(num(override)) : half;
 
   return (
     <form action={saveEntry} className="space-y-4">
@@ -273,6 +276,12 @@ export function EntryForm({
               <p className="text-sm text-muted tabular">
                 {hasEstimate ? "Estimated" : "Total"} {money(basis)} · her half{" "}
                 <span className="font-semibold text-pink-300">{money(half)}</span>
+                {half !== exactHalf && (
+                  <span className="text-muted">
+                    {" "}
+                    (rounded from {money(exactHalf)})
+                  </span>
+                )}
               </p>
               {hasEstimate && total !== basis && (
                 <p className="-mt-1 text-xs text-muted tabular">
@@ -292,11 +301,16 @@ export function EntryForm({
                   name="wifePaidOverride"
                   value={override}
                   onChange={(e) => setOverride(e.target.value)}
-                  placeholder={half.toFixed(2)}
+                  placeholder={half.toFixed(0)}
+                  inputMode="numeric"
                 />
               </Field>
               <p className="text-xs text-muted tabular">
-                She gets {money(effectiveWifePaid)} from this entry.
+                She gets {money(effectiveWifePaid)} from this entry
+                {override.trim() !== "" &&
+                  roundDollar(num(override)) !== num(override) &&
+                  " (overrides round too)"}
+                .
               </p>
             </div>
           )}

@@ -120,7 +120,7 @@ Weeks run **Monday–Sunday**. An entry's `week_of` is the Monday of its date.
 - The **basis** for her half is `est_total` if either estimate field is filled
   in, otherwise `total`
 - An entry's share for her = `wife_paid_override` if set, else `basis / 2` when
-  she rode along, else `0`
+  she rode along, else `0` — **rounded to a whole dollar** either way
 - Plus any **owed** rows on the wife ledger — her share of work no entry covers
   (trips from before you started logging, orders you didn't record)
 
@@ -133,6 +133,12 @@ the customer felt afterwards.
 Entries with no estimate recorded split what actually paid, since that's the
 only figure there is. Nothing seeded has an estimate, so history splits on
 actuals until you enter one.
+
+**Her share is always whole dollars.** Rounding happens per entry, so sums of
+those shares stay whole too — what she's owed, what you settle up, all of it.
+An exact half-dollar rounds up, in her favour. Overrides round as well: type
+`12.40` and she gets `$12`. Ledger rows are stored as typed, so keep those on
+whole dollars if you don't want change creeping back into the balance.
 
 ### What you keep
 
@@ -171,9 +177,10 @@ clear those flags. Guessed flags from a settled period take her share out of
 your net on top of the payment that already covered it — the aggregate you
 actually paid is the accurate figure, so record that as an `owed` row instead.
 
-Money is stored at full precision and rounded once, on screen. A half of
-`$21.57` is `$10.785`, so totals are summed before rounding — that's why the
-week's numbers reconcile exactly instead of drifting a cent.
+Your own money is stored at full precision and rounded once, on screen, so the
+week's numbers reconcile exactly instead of drifting a cent. Her share is the
+exception — it's rounded to a dollar at the point it's worked out, because
+that's the figure that actually changes hands.
 
 ## First run: squaring the opening balance
 

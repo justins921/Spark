@@ -22,7 +22,7 @@ import {
   setWeeklyGoal,
 } from "@/lib/data";
 import { syncSeedHistory } from "@/lib/seed-import";
-import { numOrNull, toNumeric } from "@/lib/money";
+import { numOrNull, roundDollar, toNumeric } from "@/lib/money";
 import { todayISO } from "@/lib/week";
 
 const YEAR = 60 * 60 * 24 * 365;
@@ -61,6 +61,12 @@ function str(formData: FormData, key: string): string | null {
 function money(formData: FormData, key: string): string | null {
   const n = numOrNull(str(formData, key));
   return n === null ? null : toNumeric(n);
+}
+
+/** Anything owed to her is stored on a whole dollar. */
+function dollars(formData: FormData, key: string): string | null {
+  const n = numOrNull(str(formData, key));
+  return n === null ? null : toNumeric(roundDollar(n));
 }
 
 function refreshAll() {
@@ -131,7 +137,9 @@ export async function saveEntry(formData: FormData) {
     ...values,
     wifeAlong: kind === "incentive" ? false : wifeAlong,
     wifePaidOverride:
-      kind !== "incentive" && wifeAlong ? money(formData, "wifePaidOverride") : null,
+      kind !== "incentive" && wifeAlong
+        ? dollars(formData, "wifePaidOverride")
+        : null,
     notes,
   };
 

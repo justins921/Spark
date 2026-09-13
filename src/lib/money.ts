@@ -24,6 +24,14 @@ export function round2(n: number): number {
   return Math.round((n + Number.EPSILON * Math.sign(n) * Math.abs(n)) * 100) / 100;
 }
 
+/**
+ * Round to a whole dollar. Her share is settled in notes, not coins, so every
+ * figure she's owed lands on one — and sums of whole dollars stay whole.
+ */
+export function roundDollar(n: number): number {
+  return Math.round(n);
+}
+
 /** "$1,234.56" — always 2 decimals. */
 export function money(n: number): string {
   const v = round2(n);

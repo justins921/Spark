@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { saveWifeFlags } from "@/app/actions";
 import type { EntryView } from "@/lib/calc";
 import { money } from "@/lib/money";
+import { wifePaidFor } from "@/lib/calc";
 import { formatDay, formatShort } from "@/lib/week";
 
 function SaveBar({ count, share }: { count: number; share: number }) {
@@ -53,7 +54,7 @@ export function MarkTrips({ entries }: { entries: EntryView[] }) {
   const changeCount = turnedOn.length + turnedOff.length;
 
   const share = entries.reduce(
-    (sum, e) => (on.has(e.id) ? sum + e.basis / 2 : sum),
+    (sum, e) => (on.has(e.id) ? sum + wifePaidFor(e.basis, true, null) : sum),
     0,
   );
 
@@ -77,7 +78,7 @@ export function MarkTrips({ entries }: { entries: EntryView[] }) {
       <div className="space-y-3">
         {days.map((day) => {
           const dayShare = day.rows.reduce(
-            (s, e) => (on.has(e.id) ? s + e.basis / 2 : s),
+            (s, e) => (on.has(e.id) ? s + wifePaidFor(e.basis, true, null) : s),
             0,
           );
           return (
@@ -166,7 +167,7 @@ export function MarkTrips({ entries }: { entries: EntryView[] }) {
                         <span
                           className={`shrink-0 text-sm tabular ${marked ? "text-pink-300" : "text-transparent"}`}
                         >
-                          {money(e.basis / 2)}
+                          {money(wifePaidFor(e.basis, true, null))}
                         </span>
                       </button>
                     </li>

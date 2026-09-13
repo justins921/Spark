@@ -1,5 +1,5 @@
 import type { Entry, LedgerKind, WifeLedgerRow } from "@/db/schema";
-import { num, numOrNull, round2 } from "./money";
+import { num, numOrNull, round2, roundDollar } from "./money";
 import { weekOf } from "./week";
 
 /** An entry with its money parsed and its derived numbers worked out. */
@@ -40,14 +40,17 @@ export function basisFor(
   return estTotal ?? total;
 }
 
-/** wife_paid_override if set, else half the basis when she rode along, else 0. */
+/**
+ * wife_paid_override if set, else half the basis when she rode along, else 0 —
+ * always rounded to a whole dollar.
+ */
 export function wifePaidFor(
   basis: number,
   wifeAlong: boolean,
   override: number | null,
 ): number {
-  if (override !== null) return override;
-  return wifeAlong ? basis / 2 : 0;
+  if (override !== null) return roundDollar(override);
+  return wifeAlong ? roundDollar(basis / 2) : 0;
 }
 
 /** The estimated total, or null when neither estimate field was filled in. */
