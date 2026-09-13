@@ -14,9 +14,33 @@ import { weekEnd, weekOf } from "./week";
 
 export const DEFAULT_WEEKLY_GOAL = 500;
 
-export async function getWeeklyGoal(): Promise<number> {
+export type Settings = {
+  weeklyGoal: number;
+  /** Everything on or before this date is treated as already settled. */
+  reconciledThrough: string | null;
+};
+
+export async function getSettings(): Promise<Settings> {
   const rows = await db.select().from(settings).where(eq(settings.id, 1));
-  return rows[0] ? num(rows[0].weeklyGoal) : DEFAULT_WEEKLY_GOAL;
+  const row = rows[0];
+  return {
+    weeklyGoal: row ? num(row.weeklyGoal) : DEFAULT_WEEKLY_GOAL,
+    reconciledThrough: row?.reconciledThrough ?? null,
+  };
+}
+
+export async function getWeeklyGoal(): Promise<number> {
+  return (await getSettings()).weeklyGoal;
+}
+
+export async function setReconciledThrough(date: string | null): Promise<void> {
+  await db
+    .insert(settings)
+    .values({ id: 1, reconciledThrough: date })
+    .onConflictDoUpdate({
+      target: settings.id,
+      set: { reconciledThrough: date },
+    });
 }
 
 export async function setWeeklyGoal(goal: number): Promise<void> {
@@ -82,15 +106,60 @@ export async function getWeeks(): Promise<string[]> {
   return [...weeks].sort((a, b) => (a < b ? 1 : -1));
 }
 
-/** Everything she has earned to date, minus everything actually handed over. */
-export async function getOutstanding(): Promise<number> {
-  const [allEntries, ledger] = await Promise.all([
+export type Balance = {
+  owedFromEntries: number;
+  owedAdjustments: number;
+  owed: number;
+  paid: number;
+  /** owed − paid. Negative means you're paid ahead. */
+  outstanding: number;
+  reconciledThrough: string | null;
+  /** How many rows the reconciliation date is leaving out. */
+  excludedEntries: number;
+  excludedLedger: number;
+};
+
+/**
+ * What she's earned minus what's been handed over, counting only what happened
+ * after the date you were last square. Reconciliation touches this balance
+ * only — her share still comes out of net for those trips, because she earned
+ * it; it's just already been paid for.
+ */
+export async function getBalance(): Promise<Balance> {
+  const [allEntries, ledger, { reconciledThrough }] = await Promise.all([
     getAllEntries(),
     getAllLedger(),
+    getSettings(),
   ]);
-  const owed =
-    allEntries.reduce((s, e) => s + e.wifePaid, 0) + sumKind(ledger, "owed");
-  return owed - sumKind(ledger, "paid");
+
+  const after = (date: string) =>
+    reconciledThrough === null || date > reconciledThrough;
+
+  const countedEntries = allEntries.filter((e) => after(e.date));
+  const countedLedger = ledger.filter((r) => after(r.date));
+
+  const owedFromEntries = countedEntries.reduce((s, e) => s + e.wifePaid, 0);
+  const owedAdjustments = sumKind(countedLedger, "owed");
+  const owed = owedFromEntries + owedAdjustments;
+  const paid = sumKind(countedLedger, "paid");
+
+  return {
+    owedFromEntries,
+    owedAdjustments,
+    owed,
+    paid,
+    outstanding: owed - paid,
+    reconciledThrough,
+    excludedEntries: allEntries.filter(
+      (e) => !after(e.date) && e.wifePaid > 0,
+    ).length,
+    excludedLedger: ledger.length - countedLedger.length,
+  };
+}
+
+/** Just the number, for the home screen. */
+export async function getOutstanding(): Promise<number> {
+  return (await getBalance()).outstanding;
 }
 
 /** True when nothing has ever been recorded — used to offer the seed import. */

@@ -71,6 +71,13 @@ export const settings = pgTable("settings", {
   weeklyGoal: numeric("weekly_goal", { precision: 10, scale: 2 })
     .notNull()
     .default("500"),
+
+  /**
+   * The day you and your wife were last square. Entry splits and ledger rows
+   * on or before it are left out of the balance, so early trips you can't
+   * reconstruct stop skewing what you still owe. Null means count everything.
+   */
+  reconciledThrough: date("reconciled_through"),
 });
 
 export type Entry = typeof entries.$inferSelect;

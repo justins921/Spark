@@ -15,6 +15,13 @@
       "when": 1789249195621,
       "tag": "0001_wife_ledger",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789249195622,
+      "tag": "0002_reconciled_through",
+      "breakpoints": true
     }
   ]
 }

@@ -4,14 +4,21 @@ import { DayList } from "@/components/day-list";
 import { SeedPrompt } from "@/components/seed-prompt";
 import { groupByDay, runningNet, summarize, sumKind } from "@/lib/calc";
 import {
+  getBalance,
   getEntriesInWeek,
   getLedgerInWeek,
-  getOutstanding,
   getWeeklyGoal,
   isDatabaseEmpty,
 } from "@/lib/data";
 import { money, round2, signedMoney } from "@/lib/money";
-import { formatDate, formatDay, formatWeekRange, todayISO, weekOf } from "@/lib/week";
+import {
+  formatDate,
+  formatDay,
+  formatShort,
+  formatWeekRange,
+  todayISO,
+  weekOf,
+} from "@/lib/week";
 
 export const dynamic = "force-dynamic";
 
@@ -19,11 +26,11 @@ export default async function ThisWeekPage() {
   const today = todayISO();
   const monday = weekOf(today);
 
-  const [entries, ledger, weeklyGoal, outstanding, empty] = await Promise.all([
+  const [entries, ledger, weeklyGoal, balance, empty] = await Promise.all([
     getEntriesInWeek(monday),
     getLedgerInWeek(monday),
     getWeeklyGoal(),
-    getOutstanding(),
+    getBalance(),
     isDatabaseEmpty(),
   ]);
 
@@ -37,7 +44,12 @@ export default async function ThisWeekPage() {
   }
   const pace = runningNet(days, owedByDate);
   const onPace = round2(s.vsGoal) >= 0;
-  const stillOwes = round2(outstanding);
+  const stillOwes = round2(balance.outstanding);
+  // Show the figures the balance is actually made of, so the three numbers on
+  // this card always reconcile.
+  const period = balance.reconciledThrough
+    ? `since ${formatShort(balance.reconciledThrough)}`
+    : "to date";
 
   return (
     <Shell
@@ -114,8 +126,12 @@ export default async function ThisWeekPage() {
               </p>
             </div>
             <div className="min-w-0 text-xs tabular text-muted sm:text-right">
-              <p>{money(s.owed)} earned this week</p>
-              <p>{money(s.paid)} paid this week</p>
+              <p>
+                {money(balance.owed)} earned {period}
+              </p>
+              <p>
+                {money(balance.paid)} paid {period}
+              </p>
             </div>
           </div>
         </Card>

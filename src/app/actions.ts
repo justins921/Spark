@@ -14,7 +14,7 @@ import {
   LEDGER_KINDS,
 } from "@/db/schema";
 import { SESSION_COOKIE, safeEqual, sessionToken } from "@/lib/auth";
-import { getOutstanding, setWeeklyGoal } from "@/lib/data";
+import { getBalance, setReconciledThrough, setWeeklyGoal } from "@/lib/data";
 import { importSeedHistory } from "@/lib/seed-import";
 import { numOrNull, toNumeric } from "@/lib/money";
 import { todayISO } from "@/lib/week";
@@ -171,7 +171,7 @@ export async function deleteLedgerEntry(formData: FormData) {
 
 /** One tap: record a payment for exactly what is still outstanding. */
 export async function settleUp() {
-  const outstanding = await getOutstanding();
+  const { outstanding } = await getBalance();
   if (outstanding > 0) {
     await db.insert(wifeLedger).values({
       date: todayISO(),
@@ -199,4 +199,17 @@ export async function loadSeedHistory() {
   await importSeedHistory();
   refreshAll();
   redirect("/");
+}
+
+/**
+ * Record the day you were last square. Everything on or before it drops out of
+ * the balance, which is how you get a clean starting point when you can't
+ * remember which early trips she was along for.
+ */
+export async function updateReconciledThrough(formData: FormData) {
+  const raw = str(formData, "reconciledThrough");
+  const clear = formData.get("clear") === "1";
+  await setReconciledThrough(clear ? null : raw);
+  refreshAll();
+  redirect("/wife");
 }

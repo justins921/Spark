@@ -131,12 +131,21 @@ come out of net a second time.
 
 ### What you still owe
 
-- **Earned to date** = every entry's share + every `owed` ledger row
-- **Paid to date** = every `paid` ledger row
+- **Earned** = every entry's share + every `owed` ledger row
+- **Paid** = every `paid` ledger row
 - **Outstanding** = earned − paid. Negative means you're paid ahead.
 
 `Settle up` on `/wife` records a payment for exactly the outstanding amount,
 dated today.
+
+**Starting point.** If you set a "last settled up" date on `/wife`, entries and
+ledger rows on or before it drop out of all three numbers. Use it when you were
+square on some date but can't reconstruct which early trips she came along for
+— the balance then starts clean from the day after.
+
+It only affects the balance. Her share still comes out of net for those trips,
+because she did earn it; it's just already been paid for. Clearing the date
+brings everything back.
 
 Money is stored at full precision and rounded once, on screen. A half of
 `$21.57` is `$10.785`, so totals are summed before rounding — that's why the
@@ -146,13 +155,18 @@ week's numbers reconcile exactly instead of drifting a cent.
 
 Straight after seeding, `/wife` says **paid ahead $125.58**. That's correct
 arithmetic on incomplete data: the seeded $145 of payments covers trips from
-before you were logging entries, so the app has the payment recorded but not
+before you were logging properly, so the app has the payment recorded but not
 the obligation it paid off.
 
-Fix it in one go on `/wife` → **Log to the ledger** → **She earned**: enter what
-she actually earned on that untracked work (dated `2026-09-11`) and save. Enter
-`$145.00` and the balance lands at **still owe her $19.43** — the two 9/12 trips
-you haven't settled — and the week's net reads **$449.77**.
+The quickest fix, and the one to use when you can't remember which early trips
+she was along for: `/wife` → **Starting point** → set **Last settled up** to
+`2026-09-11`. Everything up to and including that day drops out of the balance,
+which lands at **still owe her $19.43** — the two 9/12 trips.
+
+If you'd rather record the obligation than write it off, use **Log to the
+ledger → She earned** instead, dated `2026-09-11`, for what she actually earned
+on that untracked work. Both routes end in the same place; the starting point
+just doesn't need you to know the number.
 
 ## Seed data
 

@@ -4,12 +4,12 @@ import {
   logout,
   settleUp,
   updateGoal,
+  updateReconciledThrough,
 } from "@/app/actions";
 import { ConfirmButton } from "@/components/confirm-button";
 import { LedgerForm } from "@/components/ledger-form";
 import { Card, Empty, Shell } from "@/components/shell";
-import { sumKind } from "@/lib/calc";
-import { getAllEntries, getAllLedger, getWeeklyGoal } from "@/lib/data";
+import { getAllLedger, getBalance, getSettings } from "@/lib/data";
 import { money, round2 } from "@/lib/money";
 import { formatDate, todayISO } from "@/lib/week";
 
@@ -19,22 +19,25 @@ const inputClass =
   "w-full rounded-xl border border-line bg-panel-2 px-3 py-3 text-base text-text placeholder:text-muted/60 focus:border-accent focus:outline-none";
 
 export default async function WifePage() {
-  const [entries, ledger, weeklyGoal] = await Promise.all([
-    getAllEntries(),
-    getAllLedger(),
-    getWeeklyGoal(),
-  ]);
+  const [ledger, balance, { weeklyGoal, reconciledThrough }] =
+    await Promise.all([getAllLedger(), getBalance(), getSettings()]);
 
-  const fromEntries = entries.reduce((s, e) => s + e.wifePaid, 0);
-  const adjustments = sumKind(ledger, "owed");
-  const owed = fromEntries + adjustments;
-  const paid = sumKind(ledger, "paid");
-  const outstanding = round2(owed - paid);
+  const { owedFromEntries: fromEntries, owedAdjustments: adjustments } = balance;
+  const { owed, paid } = balance;
+  const outstanding = round2(balance.outstanding);
   const settled = outstanding === 0;
   const ahead = outstanding < 0;
+  const since = reconciledThrough ? `since ${formatDate(reconciledThrough)}` : null;
 
   return (
-    <Shell title="Wife" subtitle="What she's earned, what you've paid">
+    <Shell
+      title="Wife"
+      subtitle={
+        since
+          ? `Square as of ${formatDate(reconciledThrough!)} — counting everything after`
+          : "What she's earned, what you've paid"
+      }
+    >
       <Card className="mb-3">
         <p className="text-xs font-medium uppercase tracking-wide text-muted">
           {settled ? "All square" : ahead ? "Paid ahead" : "Still owe her"}
@@ -50,7 +53,7 @@ export default async function WifePage() {
         <div className="mt-3 grid grid-cols-2 gap-2 border-t border-line pt-3 text-center text-sm tabular">
           <div>
             <p className="text-[11px] uppercase tracking-wide text-muted">
-              Earned to date
+              {since ? "Earned since" : "Earned to date"}
             </p>
             <p className="mt-0.5 text-lg font-semibold text-pink-300">
               {money(owed)}
@@ -62,13 +65,20 @@ export default async function WifePage() {
           </div>
           <div>
             <p className="text-[11px] uppercase tracking-wide text-muted">
-              Paid to date
+              {since ? "Paid since" : "Paid to date"}
             </p>
             <p className="mt-0.5 text-lg font-semibold text-good">
               {money(paid)}
             </p>
             <p className="text-[11px] text-muted">
-              {ledger.filter((r) => r.kind === "paid").length} payments
+              {
+                ledger.filter(
+                  (r) =>
+                    r.kind === "paid" &&
+                    (!reconciledThrough || r.date > reconciledThrough),
+                ).length
+              }{" "}
+              payments
             </p>
           </div>
         </div>
@@ -83,6 +93,48 @@ export default async function WifePage() {
             </ConfirmButton>
           </form>
         )}
+      </Card>
+
+      <Card className="mb-3">
+        <h2 className="text-sm font-semibold">Starting point</h2>
+        <p className="mt-1 text-sm text-muted">
+          {reconciledThrough
+            ? `Everything on or before ${formatDate(reconciledThrough)} counts as already settled${
+                balance.excludedEntries + balance.excludedLedger > 0
+                  ? ` — ${balance.excludedEntries} entr${balance.excludedEntries === 1 ? "y" : "ies"} and ${balance.excludedLedger} ledger row${balance.excludedLedger === 1 ? "" : "s"} left out of the balance`
+                  : ""
+              }.`
+            : "If you and she were square as of some date, set it here. Trips on or before it stop counting toward the balance — useful when you can't remember which early ones she came along for."}
+        </p>
+        <form action={updateReconciledThrough} className="mt-3 space-y-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted">
+              Last settled up
+            </span>
+            <input
+              type="date"
+              name="reconciledThrough"
+              defaultValue={reconciledThrough ?? ""}
+              className={inputClass}
+            />
+          </label>
+          <button
+            type="submit"
+            className="w-full rounded-xl bg-accent py-3 text-base font-semibold text-ink active:opacity-90"
+          >
+            Save starting point
+          </button>
+          {reconciledThrough && (
+            <button
+              type="submit"
+              name="clear"
+              value="1"
+              className="w-full rounded-xl border border-line py-3 text-sm font-medium text-muted active:bg-panel-2"
+            >
+              Clear — count everything again
+            </button>
+          )}
+        </form>
       </Card>
 
       <Card className="mb-3">
