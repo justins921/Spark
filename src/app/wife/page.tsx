@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   addLedgerEntry,
   clearSettledWifeFlags,
@@ -96,6 +97,20 @@ export default async function WifePage() {
           </form>
         )}
       </Card>
+
+      <Link href="/wife/trips" className="mb-3 block active:opacity-80">
+        <Card className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold">Mark her trips</h2>
+            <p className="mt-1 text-sm text-muted">
+              Tap the ones she was along for, save once.
+            </p>
+          </div>
+          <span aria-hidden className="shrink-0 text-xl text-accent">
+            &rsaquo;
+          </span>
+        </Card>
+      </Link>
 
       <Card className="mb-3">
         <h2 className="text-sm font-semibold">Starting point</h2>

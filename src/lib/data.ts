@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, desc, eq, gte, lte, and } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { entries, settings, wifeLedger } from "@/db/schema";
 import { num } from "./money";
@@ -174,6 +174,44 @@ export async function getBalance(): Promise<Balance> {
 /** Just the number, for the home screen. */
 export async function getOutstanding(): Promise<number> {
   return (await getBalance()).outstanding;
+}
+
+/**
+ * Set the wife-along flag on many entries at once. Clearing a flag also drops
+ * any override, since the override only means anything when she was along.
+ */
+export async function setWifeAlong(
+  on: number[],
+  off: number[],
+): Promise<number> {
+  let changed = 0;
+  if (on.length) {
+    const r = await db
+      .update(entries)
+      .set({ wifeAlong: true })
+      .where(inArray(entries.id, on))
+      .returning({ id: entries.id });
+    changed += r.length;
+  }
+  if (off.length) {
+    const r = await db
+      .update(entries)
+      .set({ wifeAlong: false, wifePaidOverride: null })
+      .where(inArray(entries.id, off))
+      .returning({ id: entries.id });
+    changed += r.length;
+  }
+  return changed;
+}
+
+/** Everything her flag can apply to, newest first. Incentives can't. */
+export async function getMarkableEntries(): Promise<EntryView[]> {
+  const rows = await db
+    .select()
+    .from(entries)
+    .where(ne(entries.kind, "incentive"))
+    .orderBy(desc(entries.date), desc(entries.id));
+  return rows.map(toEntryView);
 }
 
 /** True when nothing has ever been recorded — used to offer the seed import. */

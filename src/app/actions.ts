@@ -17,6 +17,7 @@ import { SESSION_COOKIE, safeEqual, sessionToken } from "@/lib/auth";
 import {
   clearWifeAlongThrough,
   getBalance,
+  setWifeAlong,
   setReconciledThrough,
   setWeeklyGoal,
 } from "@/lib/data";
@@ -233,4 +234,18 @@ export async function clearSettledWifeFlags(formData: FormData) {
   if (through) await clearWifeAlongThrough(through);
   refreshAll();
   redirect("/wife");
+}
+
+/** Save a batch of wife-along toggles from the marking screen. */
+export async function saveWifeFlags(formData: FormData) {
+  const ids = (key: string) =>
+    formData
+      .getAll(key)
+      .map((v) => Number(v))
+      .filter((n) => Number.isInteger(n) && n > 0);
+
+  await setWifeAlong(ids("on"), ids("off"));
+  refreshAll();
+  revalidatePath("/wife/trips");
+  redirect("/wife/trips?saved=1");
 }

@@ -8,6 +8,7 @@ Single user, one password, three screens.
 - **This week** (`/`) — net, gross, tips, wife, running net, entries by day
 - **Weeks** (`/weeks`) — every week plus lifetime totals
 - **Wife** (`/wife`) — what she's earned vs what you've paid, and the balance
+  - **Mark her trips** (`/wife/trips`) — tap the ones she was along for, save once
 
 ## Stack
 
@@ -137,6 +138,11 @@ come out of net a second time.
 
 `Settle up` on `/wife` records a payment for exactly the outstanding amount,
 dated today.
+
+**Marking her trips.** `/wife` → **Mark her trips** lists every trip and tip
+newest first. Tapping a row is local until you hit save, and the button shows
+the running total of her share as you go, so marking a month is a lot of taps
+and one round-trip. Incentives aren't listed — she can't be along for one.
 
 **Starting point.** If you set a "last settled up" date on `/wife`, entries and
 ledger rows on or before it drop out of all three numbers. Use it when you were
