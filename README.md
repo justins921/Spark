@@ -13,57 +13,81 @@ Single user, one password, three screens.
 
 Next.js (App Router, TypeScript) · Tailwind · Neon Postgres · Drizzle ORM · Vercel
 
-## Setup
+## Deploy
 
-### 1. Create the database
+### 1. Import the repo into Vercel
 
-In the Vercel dashboard: **Storage → Create Database → Neon (Postgres)**, then
-connect it to this project. Vercel sets `DATABASE_URL` for you in all
-environments — you don't paste it anywhere.
+[vercel.com/new](https://vercel.com/new) → pick this repo → **Deploy**.
 
-### 2. Set the password
+The first build will succeed and the app will load, but every page will error
+because there's no database yet. That's expected — keep going.
 
-**Project → Settings → Environment Variables**, add:
+### 2. Add the database
 
-| Name           | Value                  |
-| -------------- | ---------------------- |
-| `APP_PASSWORD` | whatever you want      |
+In the new project: **Storage → Create Database → Neon (Postgres)**, and
+connect it to the project. Vercel sets `DATABASE_URL` in all environments for
+you.
 
-That one password unlocks the whole app. Change it and every logged-in device
-gets kicked out.
+### 3. Set the password
 
-### 3. Pull env vars locally
+**Settings → Environment Variables**, add `APP_PASSWORD` with whatever you
+want. Apply it to Production, Preview and Development.
+
+This one password unlocks the whole app. Change it later and every logged-in
+device gets signed out.
+
+### 4. Redeploy
+
+**Deployments → ⋯ on the newest one → Redeploy.**
+
+This build creates the tables. Migrations run as part of every deploy
+(`vercel-build`), so you never have to remember them — they're idempotent, so
+deploys that change nothing about the schema do nothing.
+
+The app is now live and you can log in. It'll be empty.
+
+### 5. Load your history
+
+Open the Neon database (**Storage → your database → Open in Neon**), go to the
+**SQL Editor**, paste in the contents of [`data/seed.sql`](data/seed.sql), and
+run it. That's your 31 entries and 5 payments.
+
+Safe to run twice — every row is keyed on `seed_key`, so a second run inserts
+nothing.
+
+> If you'd rather do it from a terminal, `npm run seed` does the same thing.
+> See [Working on it locally](#working-on-it-locally).
+
+### 6. Square the opening balance
+
+One thing to do in the app itself — see
+[First run: squaring the opening balance](#first-run-squaring-the-opening-balance).
+
+### 7. Put it on your phone
+
+Open the deployment URL in Safari → Share → **Add to Home Screen**. It gets its
+own icon and opens without browser chrome.
+
+Everything after this deploys on `git push`.
+
+## Working on it locally
+
+Only needed if you want to change the code.
 
 ```bash
-npm i -g vercel      # once
-vercel link          # once, pick this project
+npm i -g vercel        # once
+vercel link            # once, pick this project
 vercel env pull .env.local
-```
 
-That writes `DATABASE_URL` and `APP_PASSWORD` into `.env.local` (gitignored).
-
-### 4. Migrate and seed
-
-```bash
 npm install
-npm run db:migrate   # creates the tables
-npm run seed         # loads data/*.csv
-npm run dev          # http://localhost:3000
+npm run db:migrate
+npm run seed
+npm run dev            # http://localhost:3000
 ```
 
-After seeding, the week of **2026-09-07** shows gross **$614.19**, her share
-**$19.43**, net **$594.77** — and the wife page reads "paid ahead $125.58",
-because the seeded $145 in payments covers trips from before you started
-logging. See [First run: squaring the opening balance](#first-run-squaring-the-opening-balance).
-
-### 5. Deploy
-
-```bash
-git push
-```
-
-Vercel builds on push. Migrations are **not** run automatically — after a schema
-change, run `npm run db:migrate` locally against the production `DATABASE_URL`.
+`vercel env pull` writes `DATABASE_URL` and `APP_PASSWORD` into `.env.local`,
+which is gitignored. Note that this points at your **production** database —
+there's only one.
 
 ## Commands
 
@@ -73,8 +97,9 @@ change, run `npm run db:migrate` locally against the production `DATABASE_URL`.
 | `npm run build`       | Production build                                       |
 | `npm run typecheck`   | TypeScript, no emit                                    |
 | `npm run db:generate` | Generate a migration after editing `src/db/schema.ts`  |
-| `npm run db:migrate`  | Apply pending migrations                               |
+| `npm run db:migrate`  | Apply pending migrations (also runs on every deploy)   |
 | `npm run seed`        | Load the seed CSVs (safe to re-run)                    |
+| `npm run db:seed:sql` | Regenerate `data/seed.sql` from the CSVs               |
 
 ## The rules the app follows
 
@@ -132,7 +157,10 @@ Tip rows whose note reads `Tip — order NNN, delivered M/D` get the order numbe
 and delivered date (year 2026) pulled into their own columns, and the note is
 cleared since it no longer says anything the row doesn't.
 
-`npm run seed` is idempotent. Every seeded row carries a `seed_key`, which is
+`data/seed.sql` is generated from those CSVs by `npm run db:seed:sql`, so the
+paste-into-Neon route and `npm run seed` load exactly the same rows.
+
+Both are idempotent. Every seeded row carries a `seed_key`, which is
 unique, so re-running only fills in what's missing — it never duplicates rows or
 overwrites edits you made in the app. Rows you add yourself have a null
 `seed_key` and are never touched.
