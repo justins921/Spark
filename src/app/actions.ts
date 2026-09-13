@@ -14,7 +14,12 @@ import {
   LEDGER_KINDS,
 } from "@/db/schema";
 import { SESSION_COOKIE, safeEqual, sessionToken } from "@/lib/auth";
-import { getBalance, setReconciledThrough, setWeeklyGoal } from "@/lib/data";
+import {
+  clearWifeAlongThrough,
+  getBalance,
+  setReconciledThrough,
+  setWeeklyGoal,
+} from "@/lib/data";
 import { importSeedHistory } from "@/lib/seed-import";
 import { numOrNull, toNumeric } from "@/lib/money";
 import { todayISO } from "@/lib/week";
@@ -210,6 +215,14 @@ export async function updateReconciledThrough(formData: FormData) {
   const raw = str(formData, "reconciledThrough");
   const clear = formData.get("clear") === "1";
   await setReconciledThrough(clear ? null : raw);
+  refreshAll();
+  redirect("/wife");
+}
+
+/** Clear guessed wife-along flags from the already-settled period. */
+export async function clearSettledWifeFlags(formData: FormData) {
+  const through = str(formData, "through");
+  if (through) await clearWifeAlongThrough(through);
   refreshAll();
   redirect("/wife");
 }

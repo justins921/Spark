@@ -147,6 +147,11 @@ It only affects the balance. Her share still comes out of net for those trips,
 because she did earn it; it's just already been paid for. Clearing the date
 brings everything back.
 
+If trips before that date are still flagged wife-along, the card offers to
+clear those flags. Guessed flags from a settled period take her share out of
+your net on top of the payment that already covered it — the aggregate you
+actually paid is the accurate figure, so record that as an `owed` row instead.
+
 Money is stored at full precision and rounded once, on screen. A half of
 `$21.57` is `$10.785`, so totals are summed before rounding — that's why the
 week's numbers reconcile exactly instead of drifting a cent.
@@ -158,15 +163,24 @@ arithmetic on incomplete data: the seeded $145 of payments covers trips from
 before you were logging properly, so the app has the payment recorded but not
 the obligation it paid off.
 
-The quickest fix, and the one to use when you can't remember which early trips
-she was along for: `/wife` → **Starting point** → set **Last settled up** to
-`2026-09-11`. Everything up to and including that day drops out of the balance,
-which lands at **still owe her $19.43** — the two 9/12 trips.
+Everything through 9/11 was already paid for — $145 of it. Everything from 9/12
+on may have been earned but hasn't been paid. Three taps on `/wife` say exactly
+that:
 
-If you'd rather record the obligation than write it off, use **Log to the
-ledger → She earned** instead, dated `2026-09-11`, for what she actually earned
-on that untracked work. Both routes end in the same place; the starting point
-just doesn't need you to know the number.
+1. **Starting point** → **Last settled up** = `2026-09-11` → Save.
+   The balance drops the settled period and reads **still owe her $19.43** —
+   the two 9/12 trips.
+2. **Clear those flags**, if it offers. Trips before 9/11 marked wife-along are
+   guesses, and their share comes out of net on top of the $145 that already
+   covered them.
+3. **Log to the ledger → She earned**, dated `2026-09-11`, amount `145` —
+   what she actually earned in that period, which you know because you paid it.
+
+That lands on gross **$614.19**, her share **$164.43**, net **$449.77**, and
+**still owe her $19.43**.
+
+Step 3 is what makes the historical week right; steps 1 and 2 are what make the
+balance right. Skip 3 if you only care about the balance going forward.
 
 ## Seed data
 

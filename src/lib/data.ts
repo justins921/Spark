@@ -33,6 +33,20 @@ export async function getWeeklyGoal(): Promise<number> {
   return (await getSettings()).weeklyGoal;
 }
 
+/**
+ * Drop the wife-along flags on entries up to the settled date. Their share is
+ * already represented by what you paid for that period, so leaving guessed
+ * flags in place double-counts her against your net.
+ */
+export async function clearWifeAlongThrough(date: string): Promise<number> {
+  const cleared = await db
+    .update(entries)
+    .set({ wifeAlong: false, wifePaidOverride: null })
+    .where(and(eq(entries.wifeAlong, true), lte(entries.date, date)))
+    .returning({ id: entries.id });
+  return cleared.length;
+}
+
 export async function setReconciledThrough(date: string | null): Promise<void> {
   await db
     .insert(settings)

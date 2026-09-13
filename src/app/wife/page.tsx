@@ -1,5 +1,6 @@
 import {
   addLedgerEntry,
+  clearSettledWifeFlags,
   deleteLedgerEntry,
   logout,
   settleUp,
@@ -135,6 +136,29 @@ export default async function WifePage() {
             </button>
           )}
         </form>
+
+        {/* Flags before the settled date are guesses whose share is already
+            covered by what you paid, so they only distort net. */}
+        {reconciledThrough && balance.excludedEntries > 0 && (
+          <div className="mt-4 border-t border-line pt-3">
+            <p className="text-sm text-muted">
+              {balance.excludedEntries} entr
+              {balance.excludedEntries === 1 ? "y is" : "ies are"} still marked
+              wife-along before this date. Her share of those is already covered
+              by what you paid, so leaving them on takes it out of your net
+              twice.
+            </p>
+            <form action={clearSettledWifeFlags} className="mt-3">
+              <input type="hidden" name="through" value={reconciledThrough} />
+              <ConfirmButton
+                message={`Clear the wife-along flag on ${balance.excludedEntries} entr${balance.excludedEntries === 1 ? "y" : "ies"} through ${formatDate(reconciledThrough)}?`}
+                className="w-full rounded-xl border border-line py-3 text-sm font-semibold active:bg-panel-2"
+              >
+                Clear those flags
+              </ConfirmButton>
+            </form>
+          </div>
+        )}
       </Card>
 
       <Card className="mb-3">
