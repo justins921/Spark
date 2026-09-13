@@ -25,8 +25,13 @@ because there's no database yet. That's expected — keep going.
 ### 2. Add the database
 
 In the new project: **Storage → Create Database → Neon (Postgres)**, and
-connect it to the project. Vercel sets `DATABASE_URL` in all environments for
-you.
+connect it to the project. Vercel sets the connection string in all
+environments for you.
+
+Depending on how the store gets created that variable is named `DATABASE_URL`,
+`STORAGE_URL` or `POSTGRES_URL`. You don't need to care which — the app takes
+whichever one it finds, so leave it exactly as Vercel set it. Don't rename it
+or add a duplicate.
 
 ### 3. Set the password
 
@@ -85,9 +90,9 @@ npm run seed
 npm run dev            # http://localhost:3000
 ```
 
-`vercel env pull` writes `DATABASE_URL` and `APP_PASSWORD` into `.env.local`,
-which is gitignored. Note that this points at your **production** database —
-there's only one.
+`vercel env pull` writes the connection string and `APP_PASSWORD` into
+`.env.local`, which is gitignored. Note that this points at your **production**
+database — there's only one.
 
 ## Commands
 
@@ -190,9 +195,12 @@ phone reflows live as it opens and closes rather than needing a reload.
   you're not signed in. The session cookie is a digest of `APP_PASSWORD`.
 - Numeric fields use `inputMode="decimal"` so phones show the number pad, and
   inputs are 16px so iOS Safari doesn't zoom on focus.
-- The database driver is picked from `DATABASE_URL`: Neon's serverless HTTP
-  driver for `*.neon.tech`, plain Postgres for anything else. A local Postgres
-  works without changing code.
+- The connection string is read from the first of `DATABASE_URL`,
+  `STORAGE_URL`, `POSTGRES_URL`, `DATABASE_URL_UNPOOLED`, `STORAGE_URL_UNPOOLED`
+  or `POSTGRES_URL_NON_POOLING` that is set, so it works with whatever Vercel's
+  Neon integration named it. The driver is picked from the host: Neon's
+  serverless HTTP driver for `*.neon.tech`, plain Postgres for anything else,
+  so a local Postgres works without changing code.
 - Migration `0001` renames `wife_payments` to `wife_ledger` and adds a `kind`
   column (`owed` / `paid`), defaulting existing rows to `paid`. It's a real
   `ALTER TABLE ... RENAME`, so an already-migrated database keeps its data.

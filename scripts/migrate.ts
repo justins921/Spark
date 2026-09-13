@@ -1,15 +1,16 @@
 import { config } from "dotenv";
 config({ path: ".env.local" });
 
-import { isNeonUrl } from "../src/db/index";
+import { findConnectionString, isNeonUrl } from "../src/db/index";
 
 async function main() {
   // This runs as part of the Vercel build. The very first build can happen
   // before the Neon database is attached, so say so clearly and let the build
   // through rather than failing on a project that isn't wired up yet.
-  if (!process.env.DATABASE_URL) {
+  const url = findConnectionString();
+  if (!url) {
     console.warn(
-      "\n  DATABASE_URL is not set, so no migrations ran.\n" +
+      "\n  No database connection string found, so no migrations ran.\n" +
         "  Add a Neon database from the Vercel Storage tab, then redeploy.\n",
     );
     return;
@@ -19,7 +20,7 @@ async function main() {
   const db = scriptDb();
   const opts = { migrationsFolder: "./drizzle" };
 
-  if (isNeonUrl(process.env.DATABASE_URL)) {
+  if (isNeonUrl(url)) {
     const { migrate } = await import("drizzle-orm/neon-http/migrator");
     await migrate(db as never, opts);
   } else {
