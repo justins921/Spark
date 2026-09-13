@@ -115,11 +115,24 @@ Weeks run **Monday–Sunday**. An entry's `week_of` is the Monday of its date.
 
 ### What she earns
 
-- `total` = `base + tip`
-- An entry's share for her = `wife_paid_override` if set, else `total / 2` when
+- `total` = `base + tip` — what actually paid
+- `est_total` = `est_base + est_tip` — the offer you accepted, when recorded
+- The **basis** for her half is `est_total` if either estimate field is filled
+  in, otherwise `total`
+- An entry's share for her = `wife_paid_override` if set, else `basis / 2` when
   she rode along, else `0`
 - Plus any **owed** rows on the wife ledger — her share of work no entry covers
   (trips from before you started logging, orders you didn't record)
+
+**Her half comes off the estimate, not the payout.** A trip offered at $20 base
++ $8 tip owes her $14 whatever the tip does: land $14 and you keep the extra
+$6, land $2 and you're $6 under. The variance is entirely yours in both
+directions, which is the point — she's paid on the deal you took, not on how
+the customer felt afterwards.
+
+Entries with no estimate recorded split what actually paid, since that's the
+only figure there is. Nothing seeded has an estimate, so history splits on
+actuals until you enter one.
 
 ### What you keep
 

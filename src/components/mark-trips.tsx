@@ -53,7 +53,7 @@ export function MarkTrips({ entries }: { entries: EntryView[] }) {
   const changeCount = turnedOn.length + turnedOff.length;
 
   const share = entries.reduce(
-    (sum, e) => (on.has(e.id) ? sum + e.total / 2 : sum),
+    (sum, e) => (on.has(e.id) ? sum + e.basis / 2 : sum),
     0,
   );
 
@@ -77,7 +77,7 @@ export function MarkTrips({ entries }: { entries: EntryView[] }) {
       <div className="space-y-3">
         {days.map((day) => {
           const dayShare = day.rows.reduce(
-            (s, e) => (on.has(e.id) ? s + e.total / 2 : s),
+            (s, e) => (on.has(e.id) ? s + e.basis / 2 : s),
             0,
           );
           return (
@@ -150,6 +150,11 @@ export function MarkTrips({ entries }: { entries: EntryView[] }) {
                             <span className="ml-2 font-normal text-muted tabular">
                               {money(e.total)}
                             </span>
+                            {e.estTotal !== null && (
+                              <span className="ml-2 font-normal text-muted tabular">
+                                · est {money(e.estTotal)}
+                              </span>
+                            )}
                           </span>
                           {detail && (
                             <span className="mt-0.5 block truncate text-xs text-muted tabular">
@@ -161,7 +166,7 @@ export function MarkTrips({ entries }: { entries: EntryView[] }) {
                         <span
                           className={`shrink-0 text-sm tabular ${marked ? "text-pink-300" : "text-transparent"}`}
                         >
-                          {money(e.total / 2)}
+                          {money(e.basis / 2)}
                         </span>
                       </button>
                     </li>

@@ -76,6 +76,16 @@ export function EntryForm({
   const [kind, setKind] = useState<Kind>(entry?.kind ?? "trip");
   const [base, setBase] = useState(entry ? String(entry.base) : "");
   const [tip, setTip] = useState(entry ? String(entry.tip) : "");
+  const [estBase, setEstBase] = useState(
+    entry?.estBase !== null && entry?.estBase !== undefined
+      ? String(entry.estBase)
+      : "",
+  );
+  const [estTip, setEstTip] = useState(
+    entry?.estTip !== null && entry?.estTip !== undefined
+      ? String(entry.estTip)
+      : "",
+  );
   const [amount, setAmount] = useState(
     entry ? String(entry.kind === "tip" ? entry.tip : entry.base) : "",
   );
@@ -87,7 +97,15 @@ export function EntryForm({
   );
 
   const total = kind === "trip" ? num(base) + num(tip) : num(amount);
-  const half = total / 2;
+
+  // Her half comes off the offer that was accepted, so a tip landing above or
+  // below the estimate is yours either way. No estimate, no basis but the
+  // actual payout.
+  const hasEstimate =
+    kind === "trip" && (estBase.trim() !== "" || estTip.trim() !== "");
+  const estTotal = num(estBase) + num(estTip);
+  const basis = hasEstimate ? estTotal : total;
+  const half = basis / 2;
   const effectiveWifePaid = override.trim() !== "" ? num(override) : half;
 
   return (
@@ -125,13 +143,27 @@ export function EntryForm({
             <Field label="Est. base">
               <MoneyInput
                 name="estBase"
-                defaultValue={entry?.estBase ?? ""}
+                value={estBase}
+                onChange={(e) => setEstBase(e.target.value)}
               />
             </Field>
             <Field label="Est. tip">
-              <MoneyInput name="estTip" defaultValue={entry?.estTip ?? ""} />
+              <MoneyInput
+                name="estTip"
+                value={estTip}
+                onChange={(e) => setEstTip(e.target.value)}
+              />
             </Field>
           </div>
+          {hasEstimate && (
+            <p className="-mt-1 text-xs text-muted tabular">
+              Estimated total{" "}
+              <span className="font-semibold text-text">
+                {money(estTotal)}
+              </span>{" "}
+              — the split comes off this, not the payout.
+            </p>
+          )}
           <div className="grid grid-cols-1 gap-3 xs:grid-cols-2">
             <Field label="Actual base">
               <MoneyInput
@@ -239,9 +271,22 @@ export function EntryForm({
           {wifeAlong && (
             <div className="mt-3 space-y-3 border-t border-line pt-3">
               <p className="text-sm text-muted tabular">
-                Total {money(total)} · her half{" "}
+                {hasEstimate ? "Estimated" : "Total"} {money(basis)} · her half{" "}
                 <span className="font-semibold text-pink-300">{money(half)}</span>
               </p>
+              {hasEstimate && total !== basis && (
+                <p className="-mt-1 text-xs text-muted tabular">
+                  Paid {money(total)} —{" "}
+                  {total > basis
+                    ? `you keep the extra ${money(total - basis)}.`
+                    : `${money(basis - total)} under, and that's on you.`}
+                </p>
+              )}
+              {!hasEstimate && kind === "trip" && (
+                <p className="-mt-1 text-xs text-muted">
+                  No estimate recorded, so this splits the actual payout.
+                </p>
+              )}
               <Field label="Override (optional)">
                 <MoneyInput
                   name="wifePaidOverride"

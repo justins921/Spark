@@ -12,6 +12,10 @@ export type EntryView = {
   base: number;
   tip: number;
   total: number;
+  /** The estimated total (est base + est tip), when one was recorded. */
+  estTotal: number | null;
+  /** What her half is worked out from — the estimate if there is one. */
+  basis: number;
   wifeAlong: boolean;
   wifePaidOverride: number | null;
   wifePaid: number;
@@ -23,14 +27,36 @@ export type EntryView = {
   notes: string;
 };
 
-/** wife_paid_override if set, else half the total when she rode along, else 0. */
-export function wifePaidFor(
+/**
+ * Her half comes off the estimate you accepted, not the payout. A tip that
+ * lands above or below what was offered is yours either way — you eat it or
+ * you keep it. Entries with no estimate recorded fall back to what actually
+ * paid, since that's the only figure available.
+ */
+export function basisFor(
   total: number,
+  estTotal: number | null,
+): number {
+  return estTotal ?? total;
+}
+
+/** wife_paid_override if set, else half the basis when she rode along, else 0. */
+export function wifePaidFor(
+  basis: number,
   wifeAlong: boolean,
   override: number | null,
 ): number {
   if (override !== null) return override;
-  return wifeAlong ? total / 2 : 0;
+  return wifeAlong ? basis / 2 : 0;
+}
+
+/** The estimated total, or null when neither estimate field was filled in. */
+export function estTotalFor(
+  estBase: number | null,
+  estTip: number | null,
+): number | null {
+  if (estBase === null && estTip === null) return null;
+  return (estBase ?? 0) + (estTip ?? 0);
 }
 
 export function toEntryView(e: Entry): EntryView {
@@ -38,6 +64,8 @@ export function toEntryView(e: Entry): EntryView {
   const tip = num(e.tip);
   const total = base + tip;
   const override = numOrNull(e.wifePaidOverride);
+  const estTotal = estTotalFor(numOrNull(e.estBase), numOrNull(e.estTip));
+  const basis = basisFor(total, estTotal);
   return {
     id: e.id,
     date: e.date,
@@ -47,9 +75,11 @@ export function toEntryView(e: Entry): EntryView {
     base,
     tip,
     total,
+    estTotal,
+    basis,
     wifeAlong: e.wifeAlong,
     wifePaidOverride: override,
-    wifePaid: wifePaidFor(total, e.wifeAlong, override),
+    wifePaid: wifePaidFor(basis, e.wifeAlong, override),
     tripNumber: e.tripNumber,
     orders: e.orders,
     completedTime: e.completedTime,

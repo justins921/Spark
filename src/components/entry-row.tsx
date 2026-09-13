@@ -79,6 +79,9 @@ export function EntryRow({ entry }: { entry: EntryView }) {
         {entry.wifePaid > 0 && (
           <p className="text-[11px] text-pink-300">
             −{money(entry.wifePaid)} wife
+            {entry.estTotal !== null && (
+              <span className="text-muted"> (est)</span>
+            )}
           </p>
         )}
       </div>
