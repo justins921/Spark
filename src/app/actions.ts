@@ -15,6 +15,7 @@ import {
 } from "@/db/schema";
 import { SESSION_COOKIE, safeEqual, sessionToken } from "@/lib/auth";
 import { getOutstanding, setWeeklyGoal } from "@/lib/data";
+import { importSeedHistory } from "@/lib/seed-import";
 import { numOrNull, toNumeric } from "@/lib/money";
 import { todayISO } from "@/lib/week";
 
@@ -188,4 +189,14 @@ export async function updateGoal(formData: FormData) {
   if (goal !== null && goal >= 0) await setWeeklyGoal(goal);
   refreshAll();
   redirect("/wife");
+}
+
+/**
+ * One-tap load of the starting history on a fresh database. Idempotent — the
+ * rows are keyed, so tapping twice inserts nothing the second time.
+ */
+export async function loadSeedHistory() {
+  await importSeedHistory();
+  refreshAll();
+  redirect("/");
 }

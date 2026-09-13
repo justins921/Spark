@@ -92,3 +92,12 @@ export async function getOutstanding(): Promise<number> {
     allEntries.reduce((s, e) => s + e.wifePaid, 0) + sumKind(ledger, "owed");
   return owed - sumKind(ledger, "paid");
 }
+
+/** True when nothing has ever been recorded — used to offer the seed import. */
+export async function isDatabaseEmpty(): Promise<boolean> {
+  const [entryRow, ledgerRow] = await Promise.all([
+    db.select({ id: entries.id }).from(entries).limit(1),
+    db.select({ id: wifeLedger.id }).from(wifeLedger).limit(1),
+  ]);
+  return entryRow.length === 0 && ledgerRow.length === 0;
+}

@@ -12,6 +12,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
     "seed": "tsx scripts/seed.ts",
+    "db:seed:gen": "tsx scripts/gen-seed-data.ts",
     "db:seed:sql": "tsx scripts/seed-sql.ts"
   },
   "dependencies": {

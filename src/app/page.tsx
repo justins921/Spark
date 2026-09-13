@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { Card, Empty, Shell } from "@/components/shell";
 import { DayList } from "@/components/day-list";
+import { SeedPrompt } from "@/components/seed-prompt";
 import { groupByDay, runningNet, summarize, sumKind } from "@/lib/calc";
 import {
   getEntriesInWeek,
   getLedgerInWeek,
   getOutstanding,
   getWeeklyGoal,
+  isDatabaseEmpty,
 } from "@/lib/data";
 import { money, round2, signedMoney } from "@/lib/money";
 import { formatDate, formatDay, formatWeekRange, todayISO, weekOf } from "@/lib/week";
@@ -17,11 +19,12 @@ export default async function ThisWeekPage() {
   const today = todayISO();
   const monday = weekOf(today);
 
-  const [entries, ledger, weeklyGoal, outstanding] = await Promise.all([
+  const [entries, ledger, weeklyGoal, outstanding, empty] = await Promise.all([
     getEntriesInWeek(monday),
     getLedgerInWeek(monday),
     getWeeklyGoal(),
     getOutstanding(),
+    isDatabaseEmpty(),
   ]);
 
   const s = summarize(entries, ledger, weeklyGoal, monday);
@@ -52,6 +55,8 @@ export default async function ThisWeekPage() {
         </Link>
       }
     >
+      {empty && <SeedPrompt />}
+
       <Card className="mb-3">
         <p className="text-xs font-medium uppercase tracking-wide text-muted">
           Net

@@ -1,10 +1,10 @@
 /**
- * Prints the seed as plain SQL, generated from the same CSV parsing the
- * seed script uses so the two can't drift. Regenerate with:
- *   npx tsx scripts/seed-sql.ts > data/seed.sql
+ * Prints the seed as plain SQL, built from the same baked seed data the app
+ * and `npm run seed` use, so none of the three can drift. Regenerate with:
+ *   npm run db:seed:sql > data/seed.sql
  * Paste the output into Neon's SQL editor if you'd rather not run Node.
  */
-import { buildSeedRows } from "./seed-rows";
+import { SEED_ENTRIES, SEED_LEDGER } from "../src/lib/seed-data";
 
 const q = (v: string | number | boolean | null) => {
   if (v === null) return "NULL";
@@ -13,7 +13,8 @@ const q = (v: string | number | boolean | null) => {
   return `'${v.replace(/'/g, "''")}'`;
 };
 
-const { entryRows, ledgerRows } = buildSeedRows();
+const entryRows = SEED_ENTRIES;
+const ledgerRows = SEED_LEDGER;
 
 console.log("-- Spark Tracker seed data. Safe to run more than once:");
 console.log("-- every row is keyed on seed_key, so re-running inserts nothing new.");

@@ -53,15 +53,16 @@ The app is now live and you can log in. It'll be empty.
 
 ### 5. Load your history
 
-Open the Neon database (**Storage → your database → Open in Neon**), go to the
-**SQL Editor**, paste in the contents of [`data/seed.sql`](data/seed.sql), and
-run it. That's your 31 entries and 5 payments.
+Log in. While the database is empty the home screen offers **Load history** —
+tap it. That's your 31 entries and the $145 you've already paid her.
 
-Safe to run twice — every row is keyed on `seed_key`, so a second run inserts
-nothing.
+The prompt only appears on a completely empty database and disappears once
+there's anything in it. Tapping twice can't double up: every seeded row carries
+a unique `seed_key`.
 
-> If you'd rather do it from a terminal, `npm run seed` does the same thing.
-> See [Working on it locally](#working-on-it-locally).
+> Two other ways to do the same thing, if you ever need them: paste
+> [`data/seed.sql`](data/seed.sql) into Neon's SQL Editor, or run
+> `npm run seed` from a terminal. All three load identical rows.
 
 ### 6. Square the opening balance
 
@@ -104,7 +105,8 @@ database — there's only one.
 | `npm run db:generate` | Generate a migration after editing `src/db/schema.ts`  |
 | `npm run db:migrate`  | Apply pending migrations (also runs on every deploy)   |
 | `npm run seed`        | Load the seed CSVs (safe to re-run)                    |
-| `npm run db:seed:sql` | Regenerate `data/seed.sql` from the CSVs               |
+| `npm run db:seed:gen` | Rebake `src/lib/seed-data.ts` from the CSVs             |
+| `npm run db:seed:sql` | Regenerate `data/seed.sql` (`> data/seed.sql`)          |
 
 ## The rules the app follows
 
@@ -162,8 +164,10 @@ Tip rows whose note reads `Tip — order NNN, delivered M/D` get the order numbe
 and delivered date (year 2026) pulled into their own columns, and the note is
 cleared since it no longer says anything the row doesn't.
 
-`data/seed.sql` is generated from those CSVs by `npm run db:seed:sql`, so the
-paste-into-Neon route and `npm run seed` load exactly the same rows.
+`npm run db:seed:gen` bakes those CSVs into `src/lib/seed-data.ts`, which is
+what the in-app **Load history** button, `npm run seed` and `data/seed.sql`
+(via `npm run db:seed:sql`) all read. One source, so the three can't drift.
+Re-run both commands after editing a CSV.
 
 Both are idempotent. Every seeded row carries a `seed_key`, which is
 unique, so re-running only fills in what's missing — it never duplicates rows or
