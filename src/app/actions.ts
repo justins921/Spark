@@ -20,7 +20,7 @@ import {
   setReconciledThrough,
   setWeeklyGoal,
 } from "@/lib/data";
-import { importSeedHistory } from "@/lib/seed-import";
+import { syncSeedHistory } from "@/lib/seed-import";
 import { numOrNull, toNumeric } from "@/lib/money";
 import { todayISO } from "@/lib/week";
 
@@ -197,13 +197,21 @@ export async function updateGoal(formData: FormData) {
 }
 
 /**
- * One-tap load of the starting history on a fresh database. Idempotent — the
- * rows are keyed, so tapping twice inserts nothing the second time.
+ * Load or re-apply the recorded history. Keyed on seed_key, so it updates what
+ * has changed, adds what's new, drops placeholders that have been replaced,
+ * and leaves entries you added yourself alone.
  */
 export async function loadSeedHistory() {
-  await importSeedHistory();
+  await syncSeedHistory();
   refreshAll();
   redirect("/");
+}
+
+/** Same thing, from the settings section rather than the empty state. */
+export async function syncHistory() {
+  await syncSeedHistory();
+  refreshAll();
+  redirect("/wife");
 }
 
 /**

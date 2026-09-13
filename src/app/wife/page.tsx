@@ -4,6 +4,7 @@ import {
   deleteLedgerEntry,
   logout,
   settleUp,
+  syncHistory,
   updateGoal,
   updateReconciledThrough,
 } from "@/app/actions";
@@ -241,6 +242,22 @@ export default async function WifePage() {
             Save goal
           </button>
         </form>
+
+        <div className="mt-4 border-t border-line pt-3">
+          <p className="text-sm text-muted">
+            Re-apply the recorded history after it&apos;s been corrected. Adds
+            what&apos;s new, updates what changed, and drops placeholders that
+            have been replaced. Entries you added yourself aren&apos;t touched.
+          </p>
+          <form action={syncHistory} className="mt-3">
+            <ConfirmButton
+              message="Re-apply the recorded history? Any edits you made to those rows in the app will be overwritten."
+              className="w-full rounded-xl border border-line py-3 text-sm font-semibold active:bg-panel-2"
+            >
+              Sync history
+            </ConfirmButton>
+          </form>
+        </div>
       </Card>
 
       <form action={logout}>

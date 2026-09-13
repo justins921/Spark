@@ -397,7 +397,7 @@ export const SEED_ENTRIES: SeedEntry[] = [
     "kind": "trip",
     "base": "17.28",
     "tip": "0.00",
-    "wifeAlong": true,
+    "wifeAlong": false,
     "tripNumber": "7081",
     "orders": 1,
     "completedTime": "1:16 PM",
@@ -411,7 +411,7 @@ export const SEED_ENTRIES: SeedEntry[] = [
     "kind": "trip",
     "base": "21.57",
     "tip": "0.00",
-    "wifeAlong": true,
+    "wifeAlong": false,
     "tripNumber": "9007",
     "orders": 3,
     "completedTime": "2:29 PM",
@@ -460,6 +460,34 @@ export const SEED_ENTRIES: SeedEntry[] = [
     "orderNumber": "200015405565265",
     "deliveredDate": "2026-09-11",
     "notes": ""
+  },
+  {
+    "seedKey": "seed-entries#32",
+    "date": "2026-09-12",
+    "kind": "trip",
+    "base": "66.69",
+    "tip": "0.00",
+    "wifeAlong": false,
+    "tripNumber": null,
+    "orders": null,
+    "completedTime": null,
+    "orderNumber": null,
+    "deliveredDate": null,
+    "notes": "Rest of Saturday — awaiting per-trip detail"
+  },
+  {
+    "seedKey": "seed-entries#33",
+    "date": "2026-09-12",
+    "kind": "tip",
+    "base": "0.00",
+    "tip": "2.00",
+    "wifeAlong": false,
+    "tripNumber": null,
+    "orders": null,
+    "completedTime": null,
+    "orderNumber": null,
+    "deliveredDate": null,
+    "notes": "Confirmed tip not yet matched to an order"
   }
 ];
 

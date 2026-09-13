@@ -1,3 +1,7 @@
+
+> spark-tracker@1.0.0 db:seed:sql
+> tsx scripts/seed-sql.ts
+
 -- Spark Tracker seed data. Safe to run more than once:
 -- every row is keyed on seed_key, so re-running inserts nothing new.
 -- Run the migrations first (Vercel does this on deploy).
@@ -83,10 +87,10 @@ INSERT INTO entries (seed_key, date, kind, base, tip, wife_along, trip_number, o
 VALUES ('seed-entries#26', '2026-09-11', 'tip', '0.00', '6.44', false, NULL, NULL, NULL, '200015179655152', '2026-09-10', '')
 ON CONFLICT (seed_key) DO NOTHING;
 INSERT INTO entries (seed_key, date, kind, base, tip, wife_along, trip_number, orders, completed_time, order_number, delivered_date, notes)
-VALUES ('seed-entries#27', '2026-09-12', 'trip', '17.28', '0.00', true, '7081', 1, '1:16 PM', NULL, NULL, '')
+VALUES ('seed-entries#27', '2026-09-12', 'trip', '17.28', '0.00', false, '7081', 1, '1:16 PM', NULL, NULL, '')
 ON CONFLICT (seed_key) DO NOTHING;
 INSERT INTO entries (seed_key, date, kind, base, tip, wife_along, trip_number, orders, completed_time, order_number, delivered_date, notes)
-VALUES ('seed-entries#28', '2026-09-12', 'trip', '21.57', '0.00', true, '9007', 3, '2:29 PM', NULL, NULL, 'Cancelled at 2:29 PM, still paid')
+VALUES ('seed-entries#28', '2026-09-12', 'trip', '21.57', '0.00', false, '9007', 3, '2:29 PM', NULL, NULL, 'Cancelled at 2:29 PM, still paid')
 ON CONFLICT (seed_key) DO NOTHING;
 INSERT INTO entries (seed_key, date, kind, base, tip, wife_along, trip_number, orders, completed_time, order_number, delivered_date, notes)
 VALUES ('seed-entries#29', '2026-09-12', 'tip', '0.00', '2.82', false, NULL, NULL, NULL, '200015159773449', '2026-09-11', '')
@@ -96,6 +100,12 @@ VALUES ('seed-entries#30', '2026-09-12', 'tip', '0.00', '5.00', false, NULL, NUL
 ON CONFLICT (seed_key) DO NOTHING;
 INSERT INTO entries (seed_key, date, kind, base, tip, wife_along, trip_number, orders, completed_time, order_number, delivered_date, notes)
 VALUES ('seed-entries#31', '2026-09-12', 'tip', '0.00', '5.10', false, NULL, NULL, NULL, '200015405565265', '2026-09-11', '')
+ON CONFLICT (seed_key) DO NOTHING;
+INSERT INTO entries (seed_key, date, kind, base, tip, wife_along, trip_number, orders, completed_time, order_number, delivered_date, notes)
+VALUES ('seed-entries#32', '2026-09-12', 'trip', '66.69', '0.00', false, NULL, NULL, NULL, NULL, NULL, 'Rest of Saturday — awaiting per-trip detail')
+ON CONFLICT (seed_key) DO NOTHING;
+INSERT INTO entries (seed_key, date, kind, base, tip, wife_along, trip_number, orders, completed_time, order_number, delivered_date, notes)
+VALUES ('seed-entries#33', '2026-09-12', 'tip', '0.00', '2.00', false, NULL, NULL, NULL, NULL, NULL, 'Confirmed tip not yet matched to an order')
 ON CONFLICT (seed_key) DO NOTHING;
 
 INSERT INTO wife_ledger (seed_key, date, kind, amount, notes)

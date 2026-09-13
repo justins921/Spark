@@ -197,6 +197,13 @@ what the in-app **Load history** button, `npm run seed` and `data/seed.sql`
 (via `npm run db:seed:sql`) all read. One source, so the three can't drift.
 Re-run both commands after editing a CSV.
 
+**Correcting the history.** Edit the CSV, regenerate, deploy, then tap **Sync
+history** under Settings on `/wife`. Rows match on `seed_key`, so it updates
+what changed, adds what's new, and removes seeded rows that are no longer in
+the file — which is how a placeholder disappears once the real trips replace
+it. Entries you added yourself have a null `seed_key` and are never touched.
+It does overwrite edits made in the app to seeded rows.
+
 Both are idempotent. Every seeded row carries a `seed_key`, which is
 unique, so re-running only fills in what's missing — it never duplicates rows or
 overwrites edits you made in the app. Rows you add yourself have a null
